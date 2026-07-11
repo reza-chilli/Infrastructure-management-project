@@ -5,30 +5,43 @@ import seaborn as sns
 sns.set_theme(style="whitegrid")
 
 
-def plot_bridge_category_distribution(df):
+def plot_bridge_category_distribution(
+    df,
+    figsize=(3.2, 3.2),
+    title_fontsize=10,
+    label_fontsize=8,
+    pct_fontsize=7,
+):
     data_counts = df["Bridge_Cat"].value_counts()
-    colors = sns.color_palette("pastel")[0:len(data_counts)]
+    colors = sns.color_palette("pastel", n_colors=len(data_counts))
 
-    fig, ax = plt.subplots(figsize=(5, 5))
+    fig, ax = plt.subplots(figsize=figsize, dpi=140)
 
-    ax.pie(
+    wedges, _, autotexts = ax.pie(
         data_counts,
-        labels=data_counts.index,
+        labels=None,  # labels را از روی نمودار برمی‌داریم تا شلوغ نشود
         autopct="%1.1f%%",
         startangle=140,
         colors=colors,
-        wedgeprops={
-            "edgecolor": "white",
-            "linewidth": 2
-        }
+        wedgeprops={"edgecolor": "white", "linewidth": 1},
+        textprops={"fontsize": pct_fontsize, "color": "black"},
+        pctdistance=0.7,
     )
 
-    ax.set_title(
-        f'Distribution of {"Bridge_Cat"}',
-        fontsize=16,
-        pad=20
+    ax.set_title("Distribution of Bridge_Cat", fontsize=title_fontsize, pad=10)
+
+    ax.legend(
+        wedges,
+        data_counts.index,
+        title="Bridge_Cat",
+        loc="center left",
+        bbox_to_anchor=(1, 0.5),
+        fontsize=label_fontsize,
+        title_fontsize=label_fontsize,
+        frameon=False,
     )
 
+    fig.tight_layout()
     return fig
 
 
