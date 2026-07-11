@@ -1,6 +1,6 @@
 import streamlit as st
 from src.calculations import run_all_calculations
-from src.plots import plot_bridge_category_distribution
+from src.plots import plot_bridge_category_distribution, plot_age_distribution
 from src.data import get_current_year, load_and_preprocess_data
 from src.ui import render_linear_output, render_sidebar
 
@@ -13,7 +13,7 @@ EXCEL_PATH = "ToR Structures_Data_Updated- bahman 1405.xlsx"
 
 df = load_and_preprocess_data(EXCEL_PATH)
 
-results = run_all_calculations(df, current_year=current_year)
+df_processed, summary, top10, lowest_bci = run_all_calculations(df, current_year=current_year)
 
 page = render_sidebar()
 if page == "Bridge Network Assessment":
@@ -22,7 +22,7 @@ if page == "Bridge Network Assessment":
     col1, col2 = st.columns(2)
     with col1:
       fig1 = plot_bridge_category_distribution(
-        df,
+        df_processed,
         figsize=(2.8, 2.8),
         title_fontsize=9,
         label_fontsize=7,
@@ -30,12 +30,8 @@ if page == "Bridge Network Assessment":
       )
       st.pyplot(fig1, use_container_width=False)
     with col2:
-      fig2 = plot_bridge_category_distribution(
-        df,
-        figsize=(2.8, 2.8),
-        title_fontsize=9,
-        label_fontsize=7,
-        pct_fontsize=6,
+      fig2 = plot_age_distribution(
+        df_processed,
       )
       st.pyplot(fig2, use_container_width=False)
 
