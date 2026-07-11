@@ -441,4 +441,4 @@ df_trim["Bridge_condition_Cat"] = np.where(
     np.where(df_trim["BCI"] >= 50, "Fair", "Poor")
 )
 
-display(df_trim.sort("BCI").head(20))
+display(df_trim.sort_values("BCI").head(20))
