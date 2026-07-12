@@ -209,6 +209,8 @@ def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFr
         }
     )
 
+    print('this is summary', summary)
+
     df_processed["Age"] = current_year - df_processed["First_Year_In_Service"]
 
     df_processed["Condition"] = (
@@ -249,4 +251,17 @@ def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFr
 
     lowest_bci = df_processed.sort_values("BCI").head(20)
 
-    return df_processed, summary, top10, lowest_bci
+    kpiCardInfo = {
+        'totalBridgeCount': 0,
+        'totalCost': 0,
+        'averageAge': 0,
+        'averageConditionRating': 0,
+        'totalDailyTraffic': 0
+    }
+    kpiCardInfo['totalBridgeCount'] = df_processed.shape[0]
+    kpiCardInfo['totalCost'] = df_processed['Replacement_Cost'].sum()
+    kpiCardInfo['averageAge'] = df_processed['Age'].sum() / kpiCardInfo['totalBridgeCount']
+    kpiCardInfo['averageConditionRating'] = df_processed["Condition"].sum() / kpiCardInfo['totalBridgeCount']
+    kpiCardInfo['totalDailyTraffic'] = df_processed['Traffic_Volume'].sum()
+
+    return df_processed, summary, top10, lowest_bci, kpiCardInfo

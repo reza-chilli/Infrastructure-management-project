@@ -13,18 +13,19 @@ EXCEL_PATH = "ToR Structures_Data_Updated- bahman 1405.xlsx"
 
 df = load_and_preprocess_data(EXCEL_PATH)
 
-df_processed, summary, top10, lowest_bci = run_all_calculations(df, current_year=current_year)
+df_processed, summary, top10, lowest_bci, kpiCardInfo = run_all_calculations(df, current_year=current_year)
 
 page = render_sidebar()
 if page == "Bridge Network Assessment":
     st.title("Bridge Network Assessment")
     with st.container(border=True):
       st.subheader("Network Overview KPIs")
-      kpiC1, kpiC2, kpiC3, kpiC4 = st.columns(4)
-      kpiC1.metric("Bridges", "162")
-      kpiC2.metric("Avg Condition", "7.4 / 9")
-      kpiC3.metric("Total Traffic", "450K")
-      kpiC4.metric("Pending Insp.", "12")
+      kpiC1, kpiC2 = st.columns(2)
+      kpiC1.metric("Bridges", kpiCardInfo['totalBridgeCount'])
+      kpiC1.metric("Asset Value", f"{kpiCardInfo['totalCost']:,.0f}")
+      kpiC1.metric("Average Age", f"{kpiCardInfo['averageAge']:,.0f}")
+      kpiC2.metric("Average Health Index", f"{kpiCardInfo['averageConditionRating']:,.1f}")
+      kpiC2.metric("Total Daily Traffic", f"{kpiCardInfo['totalDailyTraffic']:,.0f}")
     col1, col2 = st.columns(2)
     with col1:
       fig1 = plot_bridge_category_distribution(
