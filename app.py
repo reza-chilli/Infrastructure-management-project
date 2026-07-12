@@ -1,6 +1,6 @@
 import streamlit as st
 from src.calculations import run_all_calculations
-from src.plots import plot_bridge_category_distribution, plot_age_distribution
+from src.plots import plot_bridge_category_distribution, plot_age_distribution, plot_bci_distribution, plot_current_condition_ratings
 from src.data import get_current_year, load_and_preprocess_data
 from src.ui import render_linear_output, render_sidebar
 
@@ -26,21 +26,28 @@ if page == "Bridge Network Assessment":
       kpiC1.metric("Average Age", f"{kpiCardInfo['averageAge']:,.0f}")
       kpiC2.metric("Average Health Index", f"{kpiCardInfo['averageConditionRating']:,.1f}")
       kpiC2.metric("Total Daily Traffic", f"{kpiCardInfo['totalDailyTraffic']:,.0f}")
-    col1, col2 = st.columns(2)
-    with col1:
+
+    pieCol1, pieCol2, pieCol3 = st.columns(3)
+    with pieCol2:
       fig1 = plot_bridge_category_distribution(
         df_processed,
-        figsize=(2.8, 2.8),
-        title_fontsize=9,
-        label_fontsize=7,
-        pct_fontsize=6,
       )
       st.pyplot(fig1, use_container_width=False)
-    with col2:
-      fig2 = plot_age_distribution(
+
+    fig2 = plot_current_condition_ratings(df_processed)
+    st.pyplot(fig2, use_container_width=False)
+
+    col1, col2 = st.columns(2)
+    with col1:
+      fig3 = plot_age_distribution(
         df_processed,
       )
-      st.pyplot(fig2, use_container_width=False)
+      st.pyplot(fig3, use_container_width=False)
+    with col2:
+      fig4 = plot_bci_distribution(
+        df_processed
+      )
+      st.pyplot(fig4, use_container_width=False)
 
 
 elif page == "Developement of a Prioritization Framework":

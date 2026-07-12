@@ -4,47 +4,34 @@ import seaborn as sns
 
 sns.set_theme(style="whitegrid")
 
-
-def plot_bridge_category_distribution(
-    df,
-    figsize=(3.2, 3.2),
-    title_fontsize=10,
-    label_fontsize=8,
-    pct_fontsize=7,
-):
+# used
+def plot_bridge_category_distribution(df):
     data_counts = df["Bridge_Cat"].value_counts()
-    colors = sns.color_palette("pastel", n_colors=len(data_counts))
+    colors = sns.color_palette("pastel")[0:len(data_counts)]
 
-    fig, ax = plt.subplots(figsize=figsize, dpi=140)
+    fig, ax = plt.subplots(figsize=(5, 5))
 
-    wedges, _, autotexts = ax.pie(
+    ax.pie(
         data_counts,
-        labels=None,  # labels را از روی نمودار برمی‌داریم تا شلوغ نشود
+        labels=data_counts.index,
         autopct="%1.1f%%",
         startangle=140,
         colors=colors,
-        wedgeprops={"edgecolor": "white", "linewidth": 1},
-        textprops={"fontsize": pct_fontsize, "color": "black"},
-        pctdistance=0.7,
+        wedgeprops={
+            "edgecolor": "white",
+            "linewidth": 2
+        }
     )
 
-    ax.set_title("Distribution of Bridge_Cat", fontsize=title_fontsize, pad=10)
-
-    ax.legend(
-        wedges,
-        data_counts.index,
-        title="Bridge_Cat",
-        loc="center left",
-        bbox_to_anchor=(1, 0.5),
-        fontsize=label_fontsize,
-        title_fontsize=label_fontsize,
-        frameon=False,
+    ax.set_title(
+        f'Distribution of Bridge Categories',
+        fontsize=16,
+        pad=20
     )
 
-    fig.tight_layout()
     return fig
 
-
+# used
 def plot_age_distribution(df):
     fig, ax = plt.subplots(figsize=(8, 5))
 
@@ -59,12 +46,12 @@ def plot_age_distribution(df):
 
     return fig
 
-
+# used
 def plot_current_condition_ratings(df):
     metrics = [
-        "current_Cond_Rat_Deck",
-        "current_Cond_Rat_Super",
-        "current_Cond_Rat_Sub",
+        { "title": "Current Deck Condition Rate", "key": "current_Cond_Rat_Deck" },
+        { "title": "Current Super Condition Rate", "key": "current_Cond_Rat_Super" },
+        { "title": "Current Sub Condition Rate", "key": "current_Cond_Rat_Sub" },
     ]
 
     fig, axes = plt.subplots(
@@ -78,20 +65,20 @@ def plot_current_condition_ratings(df):
     for i, metric in enumerate(metrics):
         sns.histplot(
             data=df,
-            x=metric,
+            x=metric["key"],
             bins=20,
             kde=True,
             ax=axes[i]
         )
 
-        axes[i].set_xlabel(metric)
+        axes[i].set_xlabel(metric["title"])
         axes[i].set_ylabel("Count")
 
     fig.tight_layout()
 
     return fig
 
-
+# used
 def plot_bci_distribution(df):
     fig, ax = plt.subplots(figsize=(8, 5))
 
