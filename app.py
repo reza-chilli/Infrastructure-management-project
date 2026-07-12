@@ -18,7 +18,13 @@ df_processed, summary, top10, lowest_bci = run_all_calculations(df, current_year
 page = render_sidebar()
 if page == "Bridge Network Assessment":
     st.title("Bridge Network Assessment")
-    st.write("This is the Bridge Network Assessment page.")
+    with st.container(border=True):
+      st.subheader("Network Overview KPIs")
+      kpiC1, kpiC2, kpiC3, kpiC4 = st.columns(4)
+      kpiC1.metric("Bridges", "162")
+      kpiC2.metric("Avg Condition", "7.4 / 9")
+      kpiC3.metric("Total Traffic", "450K")
+      kpiC4.metric("Pending Insp.", "12")
     col1, col2 = st.columns(2)
     with col1:
       fig1 = plot_bridge_category_distribution(
