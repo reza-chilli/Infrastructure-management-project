@@ -22,9 +22,9 @@ if page == "Bridge Network Assessment":
       st.subheader("Network Overview KPIs")
       kpiC1, kpiC2 = st.columns(2)
       kpiC1.metric("Bridges", kpiCardInfo['totalBridgeCount'])
-      kpiC1.metric("Asset Value", f"{kpiCardInfo['totalCost']:,.0f}")
-      kpiC1.metric("Average Age", f"{kpiCardInfo['averageAge']:,.0f}")
-      kpiC2.metric("Average Health Index", f"{kpiCardInfo['averageConditionRating']:,.1f}")
+      kpiC1.metric("Asset Value", f"{kpiCardInfo['totalCost']:,.0f} USD")
+      kpiC1.metric("Average Age", f"{kpiCardInfo['averageAge']:,.0f} Years")
+      kpiC2.metric("Average Health Index", f"{kpiCardInfo['averageConditionRating']:,.1f}%")
       kpiC2.metric("Total Daily Traffic", f"{kpiCardInfo['totalDailyTraffic']:,.0f}")
 
     pieCol1, pieCol2, pieCol3 = st.columns(3)
