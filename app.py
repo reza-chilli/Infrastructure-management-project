@@ -34,20 +34,24 @@ if page == "Bridge Network Assessment":
       )
       st.pyplot(fig1, use_container_width=False)
 
-    fig2 = plot_current_condition_ratings(df_processed)
-    st.pyplot(fig2, use_container_width=False)
+    with st.container(border=True):
+      st.title("Characteristics")
+      col1, col2 = st.columns(2)
+      with col1:
+        fig3 = plot_age_distribution(
+          df_processed,
+        )
+        st.pyplot(fig3, use_container_width=False)
+      with col2:
+        fig4 = plot_bci_distribution(
+          df_processed
+        )
+        st.pyplot(fig4, use_container_width=False)
 
-    col1, col2 = st.columns(2)
-    with col1:
-      fig3 = plot_age_distribution(
-        df_processed,
-      )
-      st.pyplot(fig3, use_container_width=False)
-    with col2:
-      fig4 = plot_bci_distribution(
-        df_processed
-      )
-      st.pyplot(fig4, use_container_width=False)
+    with st.container(border=True):
+      st.title("Condition Assessment")
+      fig2 = plot_current_condition_ratings(df_processed)
+      st.pyplot(fig2, use_container_width=False)
 
 
 elif page == "Developement of a Prioritization Framework":
