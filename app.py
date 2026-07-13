@@ -18,17 +18,17 @@ df_processed, summary, top10, lowest_bci, kpiCardInfo = run_all_calculations(df,
 page = render_sidebar()
 if page == "Bridge Network Assessment":
     st.title("Bridge Network Assessment")
-    with st.container(border=True):
-      st.subheader("Network Overview KPIs")
-      kpiC1, kpiC2 = st.columns(2)
-      kpiC1.metric("Bridges", kpiCardInfo['totalBridgeCount'])
-      kpiC1.metric("Asset Value", f"{kpiCardInfo['totalCost']:,.0f} USD")
-      kpiC1.metric("Average Age", f"{kpiCardInfo['averageAge']:,.0f} Years")
-      kpiC2.metric("Average Health Index", f"{kpiCardInfo['averageConditionRating']:,.1f}%")
-      kpiC2.metric("Total Daily Traffic", f"{kpiCardInfo['totalDailyTraffic']:,.0f}")
-
-    pieCol1, pieCol2, pieCol3 = st.columns(3)
-    with pieCol2:
+    firstRowCol1, firstRowCol2 = st.columns([6.7, 3.3])
+    with firstRowCol1:
+      with st.container(border=True):
+        st.subheader("Network Overview KPIs")
+        kpiC1, kpiC2 = st.columns(2)
+        kpiC1.metric("Bridges", kpiCardInfo['totalBridgeCount'])
+        kpiC1.metric("Asset Value", f"{kpiCardInfo['totalCost']:,.0f} USD")
+        kpiC1.metric("Average Age", f"{kpiCardInfo['averageAge']:,.0f} Years")
+        kpiC2.metric("Average Health Index", f"{kpiCardInfo['averageConditionRating']:,.1f}%")
+        kpiC2.metric("Total Daily Traffic", f"{kpiCardInfo['totalDailyTraffic']:,.0f}")
+    with firstRowCol2:
       fig1 = plot_bridge_category_distribution(
         df_processed,
       )
