@@ -6,7 +6,6 @@ from src.plots import (
     plot_age_vs_bci,
     plot_bci_distribution,
     plot_bridge_category_distribution,
-    plot_condition_distribution,
     plot_current_condition_ratings,
 )
 
