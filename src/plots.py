@@ -168,3 +168,24 @@ def plot_inspection_recency(df):
 
     # plt.tight_layout()
     return fig
+
+def plot_condition_category_distribution(df):
+    counts = df["Bridge_condition_Cat"].value_counts().reindex(["Good", "Fair", "Poor"], fill_value=0)
+
+    colors = ["#2ec4b6", "#ffbf69", "#e71d36"]
+
+    fig, ax = plt.subplots(figsize=(6, 6))
+    wedges, texts = ax.pie(
+        counts.values,
+        labels=counts.index,
+        startangle=90,
+        colors=colors,
+        wedgeprops=dict(width=0.4, edgecolor="w")
+    )
+
+    for text in texts:
+        text.set_color("#333333")
+        text.set_fontsize(11)
+
+    ax.set_title("Bridge Network Condition (FHWA)", fontsize=14, weight="bold")
+    return fig

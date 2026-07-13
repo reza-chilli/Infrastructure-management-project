@@ -1,6 +1,6 @@
 import streamlit as st
 from src.calculations import run_all_calculations
-from src.plots import plot_bridge_category_distribution, plot_age_distribution, plot_bci_distribution, plot_current_condition_ratings, plot_age_vs_bci, plot_traffic_vs_replacement_cost, plot_inspection_recency
+from src.plots import plot_bridge_category_distribution, plot_age_distribution, plot_bci_distribution, plot_current_condition_ratings, plot_age_vs_bci, plot_traffic_vs_replacement_cost, plot_inspection_recency, plot_condition_category_distribution
 from src.data import get_current_year, load_and_preprocess_data
 from src.ui import render_linear_output, render_sidebar
 
@@ -50,13 +50,42 @@ if page == "Bridge Network Assessment":
 
     with st.container(border=True):
       st.title("Condition Assessment")
+      col1, col2, col3, col4 = st.columns([1.5, 4, 3, 1.5])
+      with col2:
+        fig5 = plot_condition_category_distribution(df_processed)
+        st.pyplot(fig5, use_container_width=False)
+
+      with col3:
+        st.markdown("""
+        <div style="
+            height: 400px;
+            display: flex;
+            align-items: center;
+        ">
+            <div style="
+                width: 100%;
+                background-color: #f8f9fa;
+                padding: 18px;
+                border-radius: 12px;
+                border-left: 5px solid #6c757d;
+                font-size: 15px;
+                line-height: 1.8;
+            ">
+                <b>Condition Category Guide</b><br><br>
+                <span style="color:#198754;"><b>Good:</b></span> BCI ≥ 70<br>
+                <span style="color:#ffc107;"><b>Fair:</b></span> 50 ≤ BCI &lt; 70<br>
+                <span style="color:#dc3545;"><b>Poor:</b></span> BCI &lt; 50
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
       fig4 = plot_current_condition_ratings(df_processed)
       st.pyplot(fig4, use_container_width=False)
       col1, col2, col3 = st.columns([2, 6, 2])
 
       with col2:
-        fig5 = plot_age_vs_bci(df_processed)
-        st.pyplot(fig5, use_container_width=False)
+        fig6 = plot_age_vs_bci(df_processed)
+        st.pyplot(fig6, use_container_width=False)
 
       lowest_bci_table = lowest_bci[[
         "Structure_ID",
@@ -89,11 +118,11 @@ if page == "Bridge Network Assessment":
       st.title("Preliminary Strategic Analysis")
       col1, col2 = st.columns(2)
       with col1:
-        fig6 = plot_traffic_vs_replacement_cost(df_processed)
-        st.pyplot(fig6, use_container_width=False)
-      with col2:
-        fig7 = plot_inspection_recency(df_processed)
+        fig7 = plot_traffic_vs_replacement_cost(df_processed)
         st.pyplot(fig7, use_container_width=False)
+      with col2:
+        fig8 = plot_inspection_recency(df_processed)
+        st.pyplot(fig8, use_container_width=False)
          
 
 
