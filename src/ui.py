@@ -25,7 +25,6 @@ def render_sidebar():
             total_weight = round((bridge_deck_weight + bridge_super_structure_weight + bridge_sub_structure_weight) * 100, 2)
 
             if total_weight == 100:
-                st.success(f"Valid Inputs.")
                 
                 if st.button("Apply Changes", type="primary"):
                     st.session_state['bci_weights'] = {
