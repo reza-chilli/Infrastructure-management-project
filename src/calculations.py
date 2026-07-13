@@ -256,7 +256,7 @@ def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFr
     )
 
     df_processed["Bridge_condition_Cat"] = np.where(
-        df_processed["BCI"] >= 80,
+        df_processed["BCI"] >= 70,
         "Good",
         np.where(
             df_processed["BCI"] >= 50,
