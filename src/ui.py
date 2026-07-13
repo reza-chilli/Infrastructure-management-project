@@ -13,7 +13,7 @@ def render_sidebar():
     with st.sidebar:
         st.title("Bridge Analysis")
         with st.sidebar.expander("BCI Weight Settings", expanded=False):
-            st.write("Set the relative weights used to calculate the Bridge Condition Index (BCI).")
+            st.caption("Set the relative weights used to calculate the Bridge Condition Index (BCI).")
             deck_w_pct = st.slider("Deck Weight %", min_value=0, max_value=100, value=30, step=5)
             super_w_pct = st.slider("Superstructure Weight %", min_value=0, max_value=100, value=35, step=5)
             sub_w_pct = st.slider("Substructure Weight %", min_value=0, max_value=100, value=35, step=5)
@@ -26,7 +26,7 @@ def render_sidebar():
 
             if total_weight == 100:
                 
-                if st.button("Apply Changes", type="primary"):
+                if st.button("Apply BCI Changes", type="primary"):
                     st.session_state['bci_weights'] = {
                         'deck': bridge_deck_weight,
                         'super': bridge_super_structure_weight,
@@ -36,7 +36,26 @@ def render_sidebar():
                     st.rerun()
             else:
                 st.error(f"Total: {total_weight}% (Must be 100%)")
-                st.button("Apply Changes", disabled=True)
+                st.button("Apply BCI Changes", disabled=True)
+        with st.sidebar.expander("Prioritization Weight Settings", expanded=False):
+            st.caption("Adjust the weights used to calculate the overall bridge investment priority score.")
+            bci_w = st.slider("BCI Weight %", min_value=0, max_value=100, value=50, step=5)
+            traffic_w = st.slider("Traffic Volume Weight %", min_value=0, max_value=100, value=30, step=5)
+            replacement_cost_w = st.slider("Replacement Cost Weight %", min_value=0, max_value=100, value=20, step=5)
+            total_weight = bci_w + traffic_w + replacement_cost_w
+            if total_weight == 100:
+                if st.button("Apply PI Changes", type="primary"):
+                    st.session_state['Priority_weights'] = {
+                        'bci': bridge_deck_weight / 100,
+                        'traffic': bridge_super_structure_weight / 100,
+                        'replacementCost': bridge_sub_structure_weight / 100
+                    }
+                    st.toast("Weights Applied Successfully!", icon="✅") 
+                    st.rerun()
+            else:
+                st.error(f"Total: {total_weight}% (Must be 100%)")
+                st.button("Apply PI Changes", disabled=True)
+
 
 
         st.caption("Navigation")
