@@ -93,22 +93,6 @@ def plot_bci_distribution(df):
 
     return fig
 
-
-def plot_condition_distribution(df):
-    fig, ax = plt.subplots(figsize=(8, 5))
-
-    df["Condition"].hist(
-        bins=20,
-        ax=ax
-    )
-
-    ax.set_title("Bridge Condition Distribution")
-    ax.set_xlabel("Condition")
-    ax.set_ylabel("Count")
-
-    return fig
-
-
 def plot_age_vs_bci(df):
     fig, ax = plt.subplots(figsize=(8, 5))
 

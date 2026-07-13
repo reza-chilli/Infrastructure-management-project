@@ -235,13 +235,7 @@ def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFr
 
     df_processed["Age"] = current_year - df_processed["First_Year_In_Service"]
 
-    df_processed["Condition"] = (
-        df_processed["Cond_Rat_Deck"]
-        + df_processed["Cond_Rat_Super"]
-        + df_processed["Cond_Rat_Sub"]
-    ) / 3
-
-    df_processed["Condition_Score"] = normalize(100 - df_processed["Condition"])
+    df_processed["Condition_Score"] = normalize(100 - df_processed["BCI"])
     df_processed["Age_Score"] = normalize(df_processed["Age"])
     df_processed["Traffic_Score"] = normalize(df_processed["Traffic_Volume"])
     df_processed["Cost_Score"] = normalize(df_processed["Replacement_Cost"])
@@ -284,7 +278,7 @@ def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFr
     kpiCardInfo['totalBridgeCount'] = df_processed.shape[0]
     kpiCardInfo['totalCost'] = df_processed['Replacement_Cost'].sum()
     kpiCardInfo['averageAge'] = df_processed['Age'].sum() / kpiCardInfo['totalBridgeCount']
-    kpiCardInfo['averageConditionRating'] = df_processed["Condition"].sum() / kpiCardInfo['totalBridgeCount']
+    kpiCardInfo['averageConditionRating'] = df_processed["BCI"].sum() / kpiCardInfo['totalBridgeCount']
     kpiCardInfo['totalDailyTraffic'] = df_processed['Traffic_Volume'].sum()
     # end kpi calculation
 
