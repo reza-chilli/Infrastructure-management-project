@@ -13,6 +13,34 @@ from src.plots import (
 def render_sidebar():
     with st.sidebar:
         st.title("Bridge Analysis")
+        with st.sidebar.expander("BCI Weight Settings", expanded=False):
+            st.write("Set the relative weights used to calculate the Bridge Condition Index (BCI).")
+            deck_w_pct = st.slider("Deck Weight %", min_value=0, max_value=100, value=30, step=5)
+            super_w_pct = st.slider("Superstructure Weight %", min_value=0, max_value=100, value=35, step=5)
+            sub_w_pct = st.slider("Substructure Weight %", min_value=0, max_value=100, value=35, step=5)
+
+            bridge_deck_weight = deck_w_pct / 100
+            bridge_super_structure_weight = super_w_pct / 100
+            bridge_sub_structure_weight = sub_w_pct / 100
+
+            total_weight = round((bridge_deck_weight + bridge_super_structure_weight + bridge_sub_structure_weight) * 100, 2)
+
+            if total_weight == 100:
+                st.success(f"Valid Inputs.")
+                
+                if st.button("Apply Changes", type="primary"):
+                    st.session_state['bci_weights'] = {
+                        'deck': bridge_deck_weight / 100,
+                        'super': bridge_super_structure_weight / 100,
+                        'sub': bridge_sub_structure_weight / 100
+                    }
+                    st.toast("Weights Applied Successfully!", icon="✅") 
+                    st.rerun()
+            else:
+                st.error(f"Total: {total_weight}% (Must be 100%)")
+                st.button("Apply Changes", disabled=True)
+
+
         st.caption("Navigation")
 
         selected_page = option_menu(

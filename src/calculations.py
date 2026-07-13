@@ -1,3 +1,4 @@
+import streamlit as st
 import numpy as np
 import pandas as pd
 
@@ -152,6 +153,17 @@ def calculate_decay(initial_rating, bridge_type, unique_span_type, years):
 
     return round(current_rating, 2)
 
+def calculate_bci(df: pd.DataFrame, w_deck: float, w_super: float, w_sub: float):
+    df_temp = df.copy()
+
+    df_temp["BCI"] = (
+        w_deck * df_temp["current_Cond_Rat_Deck"]
+        + w_super * df_temp["current_Cond_Rat_Super"]
+        + w_sub * df_temp["current_Cond_Rat_Sub"]
+    )
+
+    return df_temp
+
 
 def normalize(series):
     return ((series - series.min()) / (series.max() - series.min())) * 100
@@ -160,6 +172,7 @@ def normalize(series):
 def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     df_processed = df.copy()
 
+    # current condition rating calculations
     df_processed["current_Cond_Rat_Deck"] = df_processed.apply(
         lambda row: calculate_decay(
             int(row["Cond_Rat_Deck"]),
@@ -189,16 +202,25 @@ def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFr
         ),
         axis=1,
     )
+    # end current condition rating calculations
 
-    bridge_deck_weight = 0.3
-    bridge_super_structure_weight = 0.35
-    bridge_sub_structure_weight = 0.35
+    # bci calculation
+    if 'bci_weights' in st.session_state:
+        weights = st.session_state['bci_weights']
+        w_deck = weights['deck']
+        w_super = weights['super']
+        w_sub = weights['sub']
+    else:
+        w_deck = 0.30
+        w_super = 0.35
+        w_sub = 0.35
 
     df_processed["BCI"] = (
-        bridge_deck_weight * df_processed["current_Cond_Rat_Deck"]
-        + bridge_super_structure_weight * df_processed["current_Cond_Rat_Super"]
-        + bridge_sub_structure_weight * df_processed["current_Cond_Rat_Sub"]
+        w_deck * df_processed["current_Cond_Rat_Deck"]
+        + w_super * df_processed["current_Cond_Rat_Super"]
+        + w_sub * df_processed["current_Cond_Rat_Sub"]
     )
+    # end bci calculation
 
     summary = pd.DataFrame(
         {
@@ -251,6 +273,7 @@ def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFr
 
     lowest_bci = df_processed.sort_values("BCI").head(20)
 
+    # kpi calculation
     kpiCardInfo = {
         'totalBridgeCount': 0,
         'totalCost': 0,
@@ -263,5 +286,6 @@ def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFr
     kpiCardInfo['averageAge'] = df_processed['Age'].sum() / kpiCardInfo['totalBridgeCount']
     kpiCardInfo['averageConditionRating'] = df_processed["Condition"].sum() / kpiCardInfo['totalBridgeCount']
     kpiCardInfo['totalDailyTraffic'] = df_processed['Traffic_Volume'].sum()
+    # end kpi calculation
 
     return df_processed, summary, top10, lowest_bci, kpiCardInfo
