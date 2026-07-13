@@ -1,6 +1,6 @@
 import streamlit as st
 from src.calculations import run_all_calculations
-from src.plots import plot_bridge_category_distribution, plot_age_distribution, plot_bci_distribution, plot_current_condition_ratings
+from src.plots import plot_bridge_category_distribution, plot_age_distribution, plot_bci_distribution, plot_current_condition_ratings, plot_age_vs_bci
 from src.data import get_current_year, load_and_preprocess_data
 from src.ui import render_linear_output, render_sidebar
 
@@ -38,20 +38,53 @@ if page == "Bridge Network Assessment":
       st.title("Characteristics")
       col1, col2 = st.columns(2)
       with col1:
-        fig3 = plot_age_distribution(
+        fig2 = plot_age_distribution(
           df_processed,
         )
-        st.pyplot(fig3, use_container_width=False)
+        st.pyplot(fig2, use_container_width=False)
       with col2:
-        fig4 = plot_bci_distribution(
+        fig3 = plot_bci_distribution(
           df_processed
         )
-        st.pyplot(fig4, use_container_width=False)
+        st.pyplot(fig3, use_container_width=False)
 
     with st.container(border=True):
       st.title("Condition Assessment")
-      fig2 = plot_current_condition_ratings(df_processed)
-      st.pyplot(fig2, use_container_width=False)
+      fig4 = plot_current_condition_ratings(df_processed)
+      st.pyplot(fig4, use_container_width=False)
+      col1, col2, col3 = st.columns([2, 6, 2])
+
+      with col2:
+        fig5 = plot_age_vs_bci(df_processed)
+        st.pyplot(fig5, use_container_width=False)
+
+      lowest_bci_table = lowest_bci[[
+        "Structure_ID",
+        "Bridge_Cat",
+        "Unique_Span_Type",
+        "current_Cond_Rat_Deck",
+        "current_Cond_Rat_Super",
+        "current_Cond_Rat_Sub",
+        "BCI",
+        "Bridge_condition_Cat"
+      ]]
+      st.subheader("Top 20 Bridges with Lowest BCI")
+      st.dataframe(
+        lowest_bci_table,
+        column_config={
+        "Structure_ID": "Structure ID",
+        "Bridge_Cat": "Category",
+        "Unique_Span_Type": "Span Type",
+        "current_Cond_Rat_Deck": "Deck Rating",
+        "current_Cond_Rat_Super": "Superstructure Rating",
+        "current_Cond_Rat_Sub": "Substructure Rating",
+        "BCI": st.column_config.NumberColumn("BCI", format="%.2f"),
+        "Bridge_condition_Cat": "Condition Category"
+        },
+        use_container_width=True,
+        hide_index=True
+      )
+
 
 
 elif page == "Developement of a Prioritization Framework":
