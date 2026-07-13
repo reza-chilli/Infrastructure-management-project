@@ -45,10 +45,10 @@ def render_sidebar():
             total_weight = bci_w + traffic_w + replacement_cost_w
             if total_weight == 100:
                 if st.button("Apply PI Changes", type="primary"):
-                    st.session_state['Priority_weights'] = {
+                    st.session_state['Priority_Weights'] = {
                         'bci': bridge_deck_weight / 100,
                         'traffic': bridge_super_structure_weight / 100,
-                        'replacementCost': bridge_sub_structure_weight / 100
+                        'Replacement_Cost': bridge_sub_structure_weight / 100
                     }
                     st.toast("Weights Applied Successfully!", icon="✅") 
                     st.rerun()
