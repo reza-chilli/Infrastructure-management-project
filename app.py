@@ -129,7 +129,32 @@ if page == "Bridge Network Assessment":
 
 elif page == "Developement of a Prioritization Framework":
     st.title("Developement of a Prioritization Framework")
-    st.write("This is the Developement of a Prioritization Framework page.")
+    top10_table = top10[[
+      "Structure_ID",
+      "BCI",
+      "Traffic_Volume",
+      "Replacement_Cost",
+      "Condition_Score",
+      "Traffic_Score",
+      "Cost_Score",
+      "Priority Score"
+    ]]
+    st.subheader("Top 10 Bridges with Highest PI")
+    st.dataframe(
+      top10_table,
+      column_config={
+      "Structure_ID": "Structure ID",
+      "BCI": "Bridge Condition Index",
+      "Traffic_Volume": "Traffic Volume",
+      "Replacement_Cost": "Replacement Cost",
+      "Condition_Score": "Condition Score",
+      "Traffic_Score": "Traffic Score",
+      "Cost_Score": "Replacement Cost Score",
+      "Priority Score": "Priority Score"
+      },
+      use_container_width=True,
+      hide_index=True
+    )
 
 elif page == "Maintenance and Rehabilitation Strategy":
     st.title("Maintenance and Rehabilitation Strategy")

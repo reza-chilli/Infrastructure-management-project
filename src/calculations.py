@@ -220,6 +220,15 @@ def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFr
         + w_super * df_processed["current_Cond_Rat_Super"]
         + w_sub * df_processed["current_Cond_Rat_Sub"]
     )
+    df_processed["Bridge_condition_Cat"] = np.where(
+        df_processed["BCI"] >= 70,
+        "Good",
+        np.where(
+            df_processed["BCI"] >= 50,
+            "Fair",
+            "Poor",
+        ),
+    )
     lowest_bci = df_processed.sort_values("BCI").head(20)
     # end bci calculation
 
@@ -260,16 +269,6 @@ def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFr
         .head(10)
     )
     # end priority score
-
-    df_processed["Bridge_condition_Cat"] = np.where(
-        df_processed["BCI"] >= 70,
-        "Good",
-        np.where(
-            df_processed["BCI"] >= 50,
-            "Fair",
-            "Poor",
-        ),
-    )
 
     # kpi calculation
     kpiCardInfo = {
