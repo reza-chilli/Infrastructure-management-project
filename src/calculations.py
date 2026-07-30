@@ -175,7 +175,7 @@ def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFr
     # current condition rating calculations
     df_processed["current_Cond_Rat_Deck"] = df_processed.apply(
         lambda row: calculate_decay(
-            int(row["Cond_Rat_Deck"]),
+            row["Cond_Rat_Deck"],
             row["Bridge_Cat"],
             row["Unique_Span_Type"],
             int(row["Years_Passed"]),
@@ -185,7 +185,7 @@ def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFr
 
     df_processed["current_Cond_Rat_Super"] = df_processed.apply(
         lambda row: calculate_decay(
-            int(row["Cond_Rat_Super"]),
+            row["Cond_Rat_Super"],
             row["Bridge_Cat"],
             row["Unique_Span_Type"],
             int(row["Years_Passed"]),
@@ -195,7 +195,7 @@ def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFr
 
     df_processed["current_Cond_Rat_Sub"] = df_processed.apply(
         lambda row: calculate_decay(
-            int(row["Cond_Rat_Sub"]),
+            row["Cond_Rat_Sub"],
             row["Bridge_Cat"],
             row["Unique_Span_Type"],
             int(row["Years_Passed"]),
