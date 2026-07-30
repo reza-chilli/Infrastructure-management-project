@@ -1,23 +1,40 @@
 import streamlit as st
 from src.calculations import run_all_calculations
 from src.plots import plot_bridge_category_distribution, plot_age_distribution, plot_bci_distribution, plot_current_condition_ratings, plot_age_vs_bci, plot_traffic_vs_replacement_cost, plot_inspection_recency, plot_condition_category_distribution
-from src.data import get_current_year, load_and_validate_data
+from src.data import get_current_year, load_and_validate_data, DataSchemaError
 from src.ui import render_linear_output, render_sidebar
 from src.views.prioritization import render_prioritization_page
 from src.views.data_quality import render_data_quality_page
 
 st.set_page_config(page_title="Bridge Analysis", layout="wide")
 
-EXCEL_PATH = "ToR Structures_Data_Updated- bahman 1405.xlsx"
-
 current_year = get_current_year()
 
-validation_result = load_and_validate_data(
-    EXCEL_PATH,
-    current_year=current_year,
-)
+EXCEL_PATH = "ToR Structures_Data_Updated- bahman 1405.xlsx"
+
+try:
+    validation_result = load_and_validate_data(
+        EXCEL_PATH,
+        current_year=current_year,
+    )
+
+except FileNotFoundError as exc:
+    st.error(f"Data file error: {exc}")
+    st.stop()
+
+except DataSchemaError as exc:
+    st.error("The bridge-data workbook structure is invalid.")
+    st.code(str(exc))
+    st.stop()
+
+except Exception as exc:
+    st.error("An unexpected error occurred while loading the bridge data.")
+    st.exception(exc)
+    st.stop()
+
 
 df = validation_result.data
+
 
 page = render_sidebar()
 
