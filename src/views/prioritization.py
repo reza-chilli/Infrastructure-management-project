@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-
+import matplotlib.pyplot as plt
 
 def render_prioritization_page(
     top10: pd.DataFrame,
@@ -98,3 +98,63 @@ def render_prioritization_page(
         use_container_width=True,
         hide_index=True,
     )
+
+    st.subheader("Top 10 Bridges by Priority Score")
+
+    chart_data = top10_table[
+        [
+            "Structure_ID",
+            "Priority Score",
+        ]
+    ].copy()
+
+    # Ascending order makes the highest score appear at the top
+    # of a horizontal bar chart.
+    chart_data = chart_data.sort_values(
+        by="Priority Score",
+        ascending=True,
+    )
+
+    chart_data["Structure_ID"] = (
+        chart_data["Structure_ID"].astype(str)
+    )
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    bars = ax.barh(
+        chart_data["Structure_ID"],
+        chart_data["Priority Score"],
+    )
+
+    ax.set_title("Top 10 Priority Bridges")
+    ax.set_xlabel("Priority Score")
+    ax.set_ylabel("Structure ID")
+
+    ax.grid(
+        axis="x",
+        linestyle="--",
+        alpha=0.3,
+    )
+
+    ax.bar_label(
+        bars,
+        fmt="%.2f",
+        padding=3,
+    )
+
+    max_score = chart_data["Priority Score"].max()
+
+    if pd.notna(max_score):
+        ax.set_xlim(
+            0,
+            max(100, max_score * 1.12),
+        )
+
+    fig.tight_layout()
+
+    st.pyplot(
+        fig,
+        use_container_width=True,
+    )
+
+    plt.close(fig)
