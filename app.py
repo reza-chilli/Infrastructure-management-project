@@ -5,6 +5,9 @@ from src.data import get_current_year, load_and_validate_data, DataSchemaError
 from src.ui import render_linear_output, render_sidebar
 from src.views.prioritization import render_prioritization_page
 from src.views.data_quality import render_data_quality_page
+from src.views.maintenance_strategy import (
+    render_maintenance_strategy_page,
+)
 
 st.set_page_config(page_title="Bridge Analysis", layout="wide")
 
@@ -178,6 +181,11 @@ elif page == "Development of a Prioritization Framework":
     render_prioritization_page(
         df_processed=df_processed,
         top10=top10,
+    )
+
+elif page == "Maintenance Strategy":
+    render_maintenance_strategy_page(
+        df_processed=df_processed,
     )
 
 elif page == "Maintenance and Rehabilitation Strategy":

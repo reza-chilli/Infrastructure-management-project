@@ -65,7 +65,8 @@ def render_sidebar():
             options=[
                 "Data Quality & Validation",
                 "Bridge Network Assessment", 
-                "Development of a Prioritization Framework", 
+                "Development of a Prioritization Framework",
+                "Maintenance Strategy",
                 "Maintenance and Rehabilitation Strategy", 
                 "Budget Scenario Analysis",
                 "Communication of Results"
