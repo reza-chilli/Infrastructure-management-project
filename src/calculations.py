@@ -1,288 +1,287 @@
-import streamlit as st
+"""Bridge condition, BCI, and investment-priority calculations."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
+import streamlit as st
+
+from src.deterioration import (
+    DEFAULT_EXCEL_FILE_PATH,
+    DeteriorationMappingError,
+    calculate_decay,
+    load_deterioration_rates,
+)
+
+from src.treatments import (
+    evaluate_recommended_treatments_for_network,
+)
+
+from src.treatment_policy import recommend_treatments_for_network
 
 
-BRIDGE_TYPES = {
-    "Standard": {
-        "Timber": ["TP", "TT"],
-        "Prestressed": ["SCC", "SM", "SMC", "VS", "VSO"],
-        "Precast": ["HC"],
-    },
-    "Major": {
-        "Concrete": {
-            "Pre_stressed_girder": [
-                "CBC", "DBC", "CBT", "DBT", "FC", "FM", "LF",
-                "PJ", "PM", "PO", "PQ", "RD", "RM", "VF",
-            ],
-            "Pre_cast_girder": ["PE"],
-            "Cast_in_place": ["CA", "CF", "CS", "CT", "CV", "CX"],
-        },
-        "Steel": {
-            "Beam": ["FR", "WG", "RB", "RG"],
-            "Truss": ["TH"],
-        },
-    },
-}
+def calculate_bci(
+    df: pd.DataFrame,
+    w_deck: float,
+    w_super: float,
+    w_sub: float,
+) -> pd.DataFrame:
+    """Return a copy of the data with a weighted Bridge Condition Index."""
 
+    _validate_weights(
+        {"deck": w_deck, "super": w_super, "sub": w_sub},
+        "BCI",
+    )
 
-def calculate_decay(initial_rating, bridge_type, unique_span_type, years):
-    if pd.isna(initial_rating) or pd.isna(bridge_type) or pd.isna(years):
-        return initial_rating
-
-    current_rating = initial_rating
-    bridge_type = bridge_type.strip()
-
-    for _ in range(int(years)):
-        rate = 0
-
-        if bridge_type == "STD":
-            if current_rating >= 88:
-                rate = 2.7
-            elif current_rating < 88 and current_rating >= 77:
-                rate = 1.4
-            elif current_rating < 77 and current_rating >= 66:
-                rate = 1.7
-            elif current_rating < 66 and current_rating >= 55:
-                rate = 1.3
-            elif current_rating < 55 and current_rating >= 44:
-                rate = 1.3
-            elif current_rating < 44 and current_rating >= 33:
-                rate = 2.1
-            elif current_rating < 33 and current_rating >= 22:
-                rate = 3.1
-            elif current_rating < 22 and current_rating >= 11:
-                rate = 2.8
-
-        elif bridge_type == "MAJ":
-            if unique_span_type in BRIDGE_TYPES["Major"]["Concrete"]["Pre_stressed_girder"]:
-                if current_rating >= 88:
-                    rate = 2.2
-                elif current_rating < 88 and current_rating >= 77:
-                    rate = 1.5
-                elif current_rating < 77 and current_rating >= 66:
-                    rate = 1.3
-                elif current_rating < 66 and current_rating >= 55:
-                    rate = 1.1
-                elif current_rating < 55 and current_rating >= 44:
-                    rate = 1.4
-                elif current_rating < 44 and current_rating >= 33:
-                    rate = 1.6
-                elif current_rating < 33 and current_rating >= 22:
-                    rate = 2.1
-                elif current_rating < 22 and current_rating >= 11:
-                    rate = 3.7
-
-            if unique_span_type in BRIDGE_TYPES["Major"]["Concrete"]["Pre_cast_girder"]:
-                if current_rating >= 88:
-                    rate = 5.4
-                elif current_rating < 88 and current_rating >= 77:
-                    rate = 1.8
-                elif current_rating < 77 and current_rating >= 66:
-                    rate = 1.4
-                elif current_rating < 66 and current_rating >= 55:
-                    rate = 1.1
-                elif current_rating < 55 and current_rating >= 44:
-                    rate = 1.1
-                elif current_rating < 44 and current_rating >= 33:
-                    rate = 1.3
-                elif current_rating < 33 and current_rating >= 22:
-                    rate = 1.9
-                elif current_rating < 22 and current_rating >= 11:
-                    rate = 3.7
-
-            if unique_span_type in BRIDGE_TYPES["Major"]["Concrete"]["Cast_in_place"]:
-                if current_rating >= 88:
-                    rate = 4.2
-                elif current_rating < 88 and current_rating >= 77:
-                    rate = 2.2
-                elif current_rating < 77 and current_rating >= 66:
-                    rate = 1.2
-                elif current_rating < 66 and current_rating >= 55:
-                    rate = 1.3
-                elif current_rating < 55 and current_rating >= 44:
-                    rate = 1.3
-                elif current_rating < 44 and current_rating >= 33:
-                    rate = 1.2
-                elif current_rating < 33 and current_rating >= 22:
-                    rate = 1.8
-                elif current_rating < 22 and current_rating >= 11:
-                    rate = 4.7
-
-            if unique_span_type in BRIDGE_TYPES["Major"]["Steel"]["Beam"]:
-                if current_rating >= 88:
-                    rate = 2.6
-                elif current_rating < 88 and current_rating >= 77:
-                    rate = 1.9
-                elif current_rating < 77 and current_rating >= 66:
-                    rate = 1.1
-                elif current_rating < 66 and current_rating >= 55:
-                    rate = 1.4
-                elif current_rating < 55 and current_rating >= 44:
-                    rate = 1.1
-                elif current_rating < 44 and current_rating >= 33:
-                    rate = 1.7
-                elif current_rating < 33 and current_rating >= 22:
-                    rate = 2.1
-                elif current_rating < 22 and current_rating >= 11:
-                    rate = 2.4
-
-            if unique_span_type in BRIDGE_TYPES["Major"]["Steel"]["Truss"]:
-                if current_rating >= 88:
-                    rate = 3.6
-                elif current_rating < 88 and current_rating >= 77:
-                    rate = 3.2
-                elif current_rating < 77 and current_rating >= 66:
-                    rate = 1.2
-                elif current_rating < 66 and current_rating >= 55:
-                    rate = 1.4
-                elif current_rating < 55 and current_rating >= 44:
-                    rate = 1.5
-                elif current_rating < 44 and current_rating >= 33:
-                    rate = 1.8
-                elif current_rating < 33 and current_rating >= 22:
-                    rate = 2.7
-                elif current_rating < 22 and current_rating >= 11:
-                    rate = 7.8
-
-        current_rating -= rate
-
-        if current_rating < 0:
-            current_rating = 0
-            break
-
-    return round(current_rating, 2)
-
-def calculate_bci(df: pd.DataFrame, w_deck: float, w_super: float, w_sub: float):
     df_temp = df.copy()
-
     df_temp["BCI"] = (
         w_deck * df_temp["current_Cond_Rat_Deck"]
         + w_super * df_temp["current_Cond_Rat_Super"]
         + w_sub * df_temp["current_Cond_Rat_Sub"]
     )
-
     return df_temp
 
 
-def normalize(series):
-    return ((series - series.min()) / (series.max() - series.min())) * 100
+def normalize(series: pd.Series) -> pd.Series:
+    """Min-max normalize valid values to 0-100 without division by zero."""
+
+    numeric_series = pd.to_numeric(series, errors="coerce")
+    normalized = pd.Series(
+        np.nan,
+        index=numeric_series.index,
+        dtype=float,
+    )
+
+    valid_mask = numeric_series.notna()
+    valid_values = numeric_series.loc[valid_mask]
+
+    if valid_values.empty:
+        return normalized
+
+    min_value = valid_values.min()
+    max_value = valid_values.max()
+
+    if np.isclose(max_value, min_value):
+        normalized.loc[valid_mask] = 0.0
+        return normalized
+
+    normalized.loc[valid_mask] = (
+        (valid_values - min_value)
+        / (max_value - min_value)
+        * 100
+    )
+    return normalized
 
 
-def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def run_all_calculations(
+    df: pd.DataFrame,
+    current_year: int,
+    workbook_path: str | Path = DEFAULT_EXCEL_FILE_PATH,
+) -> tuple[
+    pd.DataFrame,
+    pd.DataFrame,
+    pd.DataFrame,
+    pd.DataFrame,
+    dict[str, float | int],
+]:
+    """Run live deterioration, BCI, priority, and KPI calculations.
+
+    Exact deterioration rates are loaded from the workbook. The original
+    bridge category is preserved. Deterioration groups are selected from
+    the span-type structural family. Combined spans use the maximum
+    component deterioration rate in each simulated year.
+    """
+
     df_processed = df.copy()
 
-    # current condition rating calculations
+    invalid_mapping_mask = (
+        df_processed.get(
+            "Deterioration_Mapping_Status",
+            pd.Series("Direct", index=df_processed.index),
+        )
+        == "Invalid"
+    )
+    if invalid_mapping_mask.any():
+        invalid_ids = (
+            df_processed.loc[invalid_mapping_mask, "Structure_ID"]
+            .astype(str)
+            .tolist()
+        )
+        raise DeteriorationMappingError(
+            "Calculations stopped because these records have invalid "
+            "deterioration mappings: " + ", ".join(invalid_ids)
+        )
+
+    rate_table = load_deterioration_rates(workbook_path)
+
+    # Current component condition ratings.
     df_processed["current_Cond_Rat_Deck"] = df_processed.apply(
         lambda row: calculate_decay(
-            int(row["Cond_Rat_Deck"]),
-            row["Bridge_Cat"],
-            row["Unique_Span_Type"],
-            int(row["Years_Passed"]),
+            initial_rating=row["Cond_Rat_Deck"],
+            bridge_category=row["Bridge_Cat"],
+            span_type=row["Unique_Span_Type"],
+            years=row["Years_Passed"],
+            rate_table=rate_table,
         ),
         axis=1,
     )
 
     df_processed["current_Cond_Rat_Super"] = df_processed.apply(
         lambda row: calculate_decay(
-            int(row["Cond_Rat_Super"]),
-            row["Bridge_Cat"],
-            row["Unique_Span_Type"],
-            int(row["Years_Passed"]),
+            initial_rating=row["Cond_Rat_Super"],
+            bridge_category=row["Bridge_Cat"],
+            span_type=row["Unique_Span_Type"],
+            years=row["Years_Passed"],
+            rate_table=rate_table,
         ),
         axis=1,
     )
 
     df_processed["current_Cond_Rat_Sub"] = df_processed.apply(
         lambda row: calculate_decay(
-            int(row["Cond_Rat_Sub"]),
-            row["Bridge_Cat"],
-            row["Unique_Span_Type"],
-            int(row["Years_Passed"]),
+            initial_rating=row["Cond_Rat_Sub"],
+            bridge_category=row["Bridge_Cat"],
+            span_type=row["Unique_Span_Type"],
+            years=row["Years_Passed"],
+            rate_table=rate_table,
         ),
         axis=1,
     )
-    # end current condition rating calculations
 
-    # bci calculation
-    if 'bci_weights' in st.session_state:
-        weights = st.session_state['bci_weights']
-        w_deck = weights['deck']
-        w_super = weights['super']
-        w_sub = weights['sub']
-    else:
-        w_deck = 0.30
-        w_super = 0.35
-        w_sub = 0.35
-
-    df_processed["BCI"] = (
-        w_deck * df_processed["current_Cond_Rat_Deck"]
-        + w_super * df_processed["current_Cond_Rat_Super"]
-        + w_sub * df_processed["current_Cond_Rat_Sub"]
+    # BCI calculation.
+    bci_weights = st.session_state.get(
+        "bci_weights",
+        {"deck": 0.30, "super": 0.35, "sub": 0.35},
     )
-    df_processed["Bridge_condition_Cat"] = np.where(
-        df_processed["BCI"] >= 70,
-        "Good",
-        np.where(
-            df_processed["BCI"] >= 50,
-            "Fair",
-            "Poor",
+    bci_weights = {
+        "deck": float(bci_weights.get("deck", 0.30)),
+        "super": float(bci_weights.get("super", 0.35)),
+        "sub": float(bci_weights.get("sub", 0.35)),
+    }
+
+    df_processed = calculate_bci(
+        df=df_processed,
+        w_deck=bci_weights["deck"],
+        w_super=bci_weights["super"],
+        w_sub=bci_weights["sub"],
+    )
+
+    df_processed["Age"] = current_year - df_processed["First_Year_In_Service"]
+
+    # Priority score calculation.
+    priority_weights = st.session_state.get(
+        "Priority_Weights",
+        {"bci": 0.50, "traffic": 0.30, "replacement_cost": 0.20},
+    )
+    priority_weights = {
+        "bci": float(priority_weights.get("bci", 0.50)),
+        "traffic": float(priority_weights.get("traffic", 0.30)),
+        "replacement_cost": float(
+            priority_weights.get("replacement_cost", 0.20)
         ),
+    }
+    _validate_weights(priority_weights, "Prioritization")
+
+    df_processed["Condition_Score"] = normalize(100 - df_processed["BCI"])
+    df_processed["Traffic_Score"] = normalize(df_processed["Traffic_Volume"])
+    df_processed["Cost_Score"] = normalize(df_processed["Replacement_Cost"])
+    df_processed["Priority Score"] = (
+        priority_weights["bci"] * df_processed["Condition_Score"]
+        + priority_weights["traffic"] * df_processed["Traffic_Score"]
+        + priority_weights["replacement_cost"] * df_processed["Cost_Score"]
     )
-    lowest_bci = df_processed.sort_values("BCI").head(20)
-    # end bci calculation
+
+    df_processed["Priority Rank"] = (
+        df_processed["Priority Score"]
+        .rank(
+            method="min",
+            ascending=False,
+        )
+        .astype("Int64")
+    )
+
+    df_processed["Bridge_condition_Cat"] = pd.cut(
+        df_processed["BCI"],
+        bins=[
+            -np.inf,
+            50,
+            70,
+            np.inf,
+        ],
+        labels=[
+            "Poor",
+            "Fair",
+            "Good",
+        ],
+        right=False,
+    ).astype("string")
+
+    df_processed = recommend_treatments_for_network(
+        df_processed
+    )
+
+    df_processed = evaluate_recommended_treatments_for_network(
+        df=df_processed,
+        bci_weights=bci_weights,
+    )
+
+    # Ranked subsets are created only after all required columns exist.
+    lowest_bci = (
+        df_processed
+        .nsmallest(20, "BCI")
+        .copy()
+    )
+    
+    top10 = (
+        df_processed
+        .sort_values(
+            by=[
+                "Priority Rank",
+                "Structure_ID",
+            ],
+            ascending=[
+                True,
+                True,
+            ],
+        )
+        .head(10)
+        .copy()
+    )
 
     summary = pd.DataFrame(
         {
             "Type": df_processed.dtypes,
             "Missing": df_processed.isna().sum(),
-            "Missing %": (df_processed.isna().sum() / len(df_processed) * 100).round(2),
+            "Missing %": (
+                df_processed.isna().sum() / len(df_processed) * 100
+            ).round(2),
             "Unique": df_processed.nunique(),
         }
     )
 
-    df_processed["Age"] = current_year - df_processed["First_Year_In_Service"]
-    # priority score
-    if 'Priority_Weights' in st.session_state:
-        weights = st.session_state['Priority_Weights']
-        w_bci = weights['bci']
-        w_traffic = weights['traffic']
-        w_replacement_cost = weights['Replacement_Cost']
-    else:
-        w_bci = 0.50
-        w_traffic = 0.30
-        w_replacement_cost = 0.20
-    df_processed["Condition_Score"] = normalize(100 - df_processed["BCI"])
-    df_processed["Traffic_Score"] = normalize(df_processed["Traffic_Volume"])
-    df_processed["Cost_Score"] = normalize(df_processed["Replacement_Cost"])
-    df_processed["Priority Score"] = (
-        w_bci * df_processed["Condition_Score"]
-        + w_traffic * df_processed["Traffic_Score"]
-        + w_replacement_cost * df_processed["Cost_Score"]
-    )
-
-    top10 = (
-        df_processed.sort_values(
-            "Priority Score",
-            ascending=False,
-        )
-        .head(10)
-    )
-    # end priority score
-
-    # kpi calculation
-    kpiCardInfo = {
-        'totalBridgeCount': 0,
-        'totalCost': 0,
-        'averageAge': 0,
-        'averageConditionRating': 0,
-        'totalDailyTraffic': 0
+    bridge_count = int(df_processed.shape[0])
+    kpi_card_info: dict[str, float | int] = {
+        "totalBridgeCount": bridge_count,
+        "totalCost": float(df_processed["Replacement_Cost"].sum()),
+        "averageAge": float(df_processed["Age"].mean()),
+        "averageConditionRating": float(df_processed["BCI"].mean()),
+        "totalDailyTraffic": float(df_processed["Traffic_Volume"].sum()),
     }
-    kpiCardInfo['totalBridgeCount'] = df_processed.shape[0]
-    kpiCardInfo['totalCost'] = df_processed['Replacement_Cost'].sum()
-    kpiCardInfo['averageAge'] = df_processed['Age'].sum() / kpiCardInfo['totalBridgeCount']
-    kpiCardInfo['averageConditionRating'] = df_processed["BCI"].sum() / kpiCardInfo['totalBridgeCount']
-    kpiCardInfo['totalDailyTraffic'] = df_processed['Traffic_Volume'].sum()
-    # end kpi calculation
 
-    return df_processed, summary, top10, lowest_bci, kpiCardInfo
+    return df_processed, summary, top10, lowest_bci, kpi_card_info
+
+
+def _validate_weights(weights: dict[str, float], label: str) -> None:
+    """Reject malformed or non-normalized analysis weights."""
+
+    values = np.array(list(weights.values()), dtype=float)
+    if not np.isfinite(values).all():
+        raise ValueError(f"{label} weights must be finite numbers.")
+    if (values < 0).any():
+        raise ValueError(f"{label} weights cannot be negative.")
+    if not np.isclose(values.sum(), 1.0):
+        raise ValueError(
+            f"{label} weights must sum to 1.00; received {values.sum():.4f}."
+        )

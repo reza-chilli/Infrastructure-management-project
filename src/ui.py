@@ -33,10 +33,11 @@ def render_sidebar():
                         'sub': bridge_sub_structure_weight
                     }
                     st.toast("Weights Applied Successfully!", icon="✅") 
-                    st.rerun()
+                    
             else:
                 st.error(f"Total: {total_weight}% (Must be 100%)")
                 st.button("Apply BCI Changes", disabled=True)
+
         with st.sidebar.expander("Prioritization Weight Settings", expanded=False):
             st.caption("Adjust the weights used to calculate the overall bridge investment priority score.")
             bci_w = st.slider("BCI Weight %", min_value=0, max_value=100, value=50, step=5)
@@ -46,12 +47,12 @@ def render_sidebar():
             if total_weight == 100:
                 if st.button("Apply PI Changes", type="primary"):
                     st.session_state['Priority_Weights'] = {
-                        'bci': bridge_deck_weight / 100,
-                        'traffic': bridge_super_structure_weight / 100,
-                        'Replacement_Cost': bridge_sub_structure_weight / 100
+                        'bci': bci_w / 100,
+                        'traffic': traffic_w / 100,
+                        'replacement_cost': replacement_cost_w / 100
                     }
                     st.toast("Weights Applied Successfully!", icon="✅") 
-                    st.rerun()
+                    
             else:
                 st.error(f"Total: {total_weight}% (Must be 100%)")
                 st.button("Apply PI Changes", disabled=True)
@@ -63,13 +64,16 @@ def render_sidebar():
         selected_page = option_menu(
             menu_title=None,
             options=[
+                "Data Quality & Validation",
                 "Bridge Network Assessment", 
-                "Developement of a Prioritization Framework", 
+                "Development of a Prioritization Framework",
+                "Maintenance Strategy",
                 "Maintenance and Rehabilitation Strategy", 
                 "Budget Scenario Analysis",
                 "Communication of Results"
             ],
             icons=[
+                "database-check",
                 "diagram-3",
                 "ui-checks-grid",
                 "tools",
@@ -78,13 +82,14 @@ def render_sidebar():
             ],
             menu_icon="cast",
             default_index=0,
+            key="main_navigation",
             styles={
                 "container": {
                     "padding": "0!important",
                     "background-color": "transparent",
                 },
                 "icon": {
-                    "color": "#4F8BF9",
+                    "color": "#B2B9FF",
                     "font-size": "18px",
                 },
                 "nav-link": {
