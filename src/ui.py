@@ -28,9 +28,9 @@ def render_sidebar():
                 
                 if st.button("Apply BCI Changes", type="primary"):
                     st.session_state['bci_weights'] = {
-                        'deck': bridge_deck_weight,
-                        'super': bridge_super_structure_weight,
-                        'sub': bridge_sub_structure_weight
+                        'deck': bridge_deck_weight / 100,
+                        'super': bridge_super_structure_weight / 100,
+                        'sub': bridge_sub_structure_weight / 100
                     }
                     st.toast("Weights Applied Successfully!", icon="✅") 
                     

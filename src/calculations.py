@@ -82,9 +82,10 @@ def run_all_calculations(
 ]:
     """Run live deterioration, BCI, priority, and KPI calculations.
 
-    Exact deterioration rates are loaded from the workbook. Records with a
-    single category/span mismatch use the category implied by the span code;
-    combined spans use the maximum component rate in each simulated year.
+    Exact deterioration rates are loaded from the workbook. The original
+    bridge category is preserved. Deterioration groups are selected from
+    the span-type structural family. Combined spans use the maximum
+    component deterioration rate in each simulated year.
     """
 
     df_processed = df.copy()
@@ -153,12 +154,12 @@ def run_all_calculations(
         "super": float(bci_weights.get("super", 0.35)),
         "sub": float(bci_weights.get("sub", 0.35)),
     }
-    _validate_weights(bci_weights, "BCI")
-
-    df_processed["BCI"] = (
-        bci_weights["deck"] * df_processed["current_Cond_Rat_Deck"]
-        + bci_weights["super"] * df_processed["current_Cond_Rat_Super"]
-        + bci_weights["sub"] * df_processed["current_Cond_Rat_Sub"]
+    
+    df_processed = calculate_bci(
+        df=df_processed,
+        w_deck=bci_weights["deck"],
+        w_super=bci_weights["super"],
+        w_sub=bci_weights["sub"],
     )
 
     df_processed["Age"] = current_year - df_processed["First_Year_In_Service"]
@@ -187,19 +188,45 @@ def run_all_calculations(
     )
 
     df_processed["Priority Rank"] = (
-    df_processed["Priority Score"]
-    .rank(
-        method="min",
-        ascending=False,
+        df_processed["Priority Score"]
+        .rank(
+            method="min",
+            ascending=False,
+        )
+        .astype("Int64")
     )
-    .astype("Int64")
-)
 
-    df_processed["Bridge_condition_Cat"] = np.where(
-        df_processed["BCI"] >= 70,
-        "Good",
-        np.where(df_processed["BCI"] >= 50, "Fair", "Poor"),
-    )
+    df_processed["Bridge_condition_Cat"] = pd.cut(
+        df_processed["BCI"],
+        bins=[
+            -np.inf,
+            50,
+            70,
+            np.inf,
+        ],
+        labels=[
+            "Poor",
+            "Fair",
+            "Good",
+        ],
+        right=False,
+    ).astype("string")
+
+    df_processed["Bridge_condition_Cat"] = pd.cut(
+        df_processed["BCI"],
+        bins=[
+            -np.inf,
+            50,
+            70,
+            np.inf,
+        ],
+        labels=[
+            "Poor",
+            "Fair",
+            "Good",
+        ],
+        right=False,
+    ).astype("string")
 
     # Ranked subsets are created only after all required columns exist.
     lowest_bci = df_processed.nsmallest(20, "BCI").copy()
