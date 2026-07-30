@@ -14,6 +14,7 @@ from src.deterioration import (
     calculate_decay,
     load_deterioration_rates,
 )
+from src.treatment_policy import recommend_treatments_for_network
 
 
 def calculate_bci(
@@ -212,6 +213,10 @@ def run_all_calculations(
         right=False,
     ).astype("string")
 
+    df_processed = recommend_treatments_for_network(
+        df_processed
+    )
+
     df_processed["Bridge_condition_Cat"] = pd.cut(
         df_processed["BCI"],
         bins=[
@@ -227,6 +232,31 @@ def run_all_calculations(
         ],
         right=False,
     ).astype("string")
+
+    df_processed["Bridge_condition_Cat"] = pd.cut(
+        df_processed["BCI"],
+        bins=[
+            -np.inf,
+            50,
+            70,
+            np.inf,
+        ],
+        labels=[
+            "Poor",
+            "Fair",
+            "Good",
+        ],
+        right=False,
+    ).astype("string")
+
+    df_processed = recommend_treatments_for_network(
+        df_processed
+    )
+
+    lowest_bci = df_processed.nsmallest(
+        20,
+        "BCI",
+    ).copy()
 
     # Ranked subsets are created only after all required columns exist.
     lowest_bci = df_processed.nsmallest(20, "BCI").copy()
