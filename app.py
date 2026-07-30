@@ -59,7 +59,9 @@ if not validation_result.is_deterioration_model_ready:
         "Review the Data Quality & Validation page."
     )
 
-df_processed, summary, top10, lowest_bci, kpiCardInfo = run_all_calculations(df, current_year=current_year)
+
+
+df_processed, summary, top10, lowest_bci, kpiCardInfo = run_all_calculations(df, current_year=current_year, workbook_path=EXCEL_PATH)
 
 if page == "Bridge Network Assessment":
     st.title("Bridge Network Assessment")

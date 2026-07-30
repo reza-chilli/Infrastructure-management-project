@@ -16,6 +16,14 @@ import re
 import numpy as np
 import pandas as pd
 
+from src.deterioration import (
+    KNOWN_SPAN_TYPES,
+    MAJOR_SPAN_TYPES,
+    STANDARD_SPAN_TYPES,
+    add_deterioration_mapping_columns,
+    split_span_types,
+)
+
 
 # ---------------------------------------------------------------------------
 # Workbook schema
@@ -119,47 +127,6 @@ OPTIONAL_VALUE_COLUMNS = ["Usage_Code"]
 ALLOWED_BRIDGE_CATEGORIES = {"STD", "MAJ"}
 ALLOWED_HIGHWAY_DIRECTIONS = {"C", "L", "R"}
 
-STANDARD_SPAN_TYPES = {
-    "TP",
-    "TT",
-    "SCC",
-    "SM",
-    "SMC",
-    "VS",
-    "VSO",
-    "HC",
-}
-
-MAJOR_SPAN_TYPES = {
-    "CBC",
-    "DBC",
-    "CBT",
-    "DBT",
-    "FC",
-    "FM",
-    "LF",
-    "PJ",
-    "PM",
-    "PO",
-    "PQ",
-    "RD",
-    "RM",
-    "VF",
-    "PE",
-    "CA",
-    "CF",
-    "CS",
-    "CT",
-    "CV",
-    "CX",
-    "FR",
-    "WG",
-    "RB",
-    "RG",
-    "TH",
-}
-
-KNOWN_SPAN_TYPES = STANDARD_SPAN_TYPES | MAJOR_SPAN_TYPES
 
 # Numeric fields where unusual values should be reviewed, not automatically
 # removed or capped. Infrastructure assets can legitimately be outliers.
@@ -910,7 +877,7 @@ def _build_validation_issues(
         if unknown_codes:
             add_issue(
                 int(index),
-                "Warning",
+                "Critical",
                 "Unknown Span Type",
                 "Unique_Span_Type",
                 span_value,
@@ -1025,9 +992,9 @@ def _add_nonpositive_issues(
 
 
 def _split_span_types(value: Any) -> list[str]:
-    if pd.isna(value):
-        return []
-    return [part.strip().upper() for part in str(value).split(",") if part.strip()]
+    """Compatibility wrapper around the central deterioration taxonomy."""
+
+    return list(split_span_types(value))
 
 
 # ---------------------------------------------------------------------------
@@ -1037,7 +1004,7 @@ def _attach_row_quality_fields(
     df: pd.DataFrame,
     issues: pd.DataFrame,
 ) -> pd.DataFrame:
-    enriched = df.copy()
+    enriched = add_deterioration_mapping_columns(df)
 
     for column, default in [
         ("Data_Quality_Issue_Count", 0),
@@ -1048,8 +1015,11 @@ def _attach_row_quality_fields(
         enriched[column] = default
 
     enriched["Data_Quality_Status"] = "Valid"
-    enriched["Outlier_Columns"] = pd.Series(pd.NA, index=enriched.index, dtype="string")
-    enriched["Deterioration_Mapping_Status"] = "Valid"
+    enriched["Outlier_Columns"] = pd.Series(
+        pd.NA,
+        index=enriched.index,
+        dtype="string",
+    )
 
     if issues.empty:
         return enriched
@@ -1058,9 +1028,21 @@ def _attach_row_quality_fields(
     row_issues["Data_Index"] = row_issues["Data_Index"].astype(int)
 
     total_counts = row_issues.groupby("Data_Index").size()
-    critical_counts = row_issues[row_issues["Severity"] == "Critical"].groupby("Data_Index").size()
-    warning_counts = row_issues[row_issues["Severity"] == "Warning"].groupby("Data_Index").size()
-    info_counts = row_issues[row_issues["Severity"] == "Info"].groupby("Data_Index").size()
+    critical_counts = (
+        row_issues[row_issues["Severity"] == "Critical"]
+        .groupby("Data_Index")
+        .size()
+    )
+    warning_counts = (
+        row_issues[row_issues["Severity"] == "Warning"]
+        .groupby("Data_Index")
+        .size()
+    )
+    info_counts = (
+        row_issues[row_issues["Severity"] == "Info"]
+        .groupby("Data_Index")
+        .size()
+    )
 
     enriched.loc[total_counts.index, "Data_Quality_Issue_Count"] = total_counts
     enriched.loc[critical_counts.index, "Data_Quality_Critical_Count"] = critical_counts
@@ -1075,31 +1057,11 @@ def _attach_row_quality_fields(
         outlier_columns = outlier_issues.groupby("Data_Index")["Column"].agg(
             lambda values: ", ".join(sorted(set(values.dropna().astype(str))))
         )
-        enriched.loc[outlier_columns.index, "Outlier_Columns"] = outlier_columns.astype("string")
-
-    mapping_categories = {
-        "Unknown Span Type",
-        "Combined Span Type",
-        "Category/Span Mismatch",
-    }
-    mapping_issues = row_issues[row_issues["Category"].isin(mapping_categories)]
-    if not mapping_issues.empty:
-        enriched.loc[mapping_issues["Data_Index"].unique(), "Deterioration_Mapping_Status"] = "Review"
-
-    # The current deterioration function can map only one valid code. Mark all
-    # records that violate that requirement as Unmapped.
-    for index, row in enriched.iterrows():
-        codes = _split_span_types(row["Unique_Span_Type"])
-        category = row["Bridge_Cat"]
-        if not codes or category not in ALLOWED_BRIDGE_CATEGORIES:
-            enriched.at[index, "Deterioration_Mapping_Status"] = "Unmapped"
-            continue
-        expected_set = STANDARD_SPAN_TYPES if category == "STD" else MAJOR_SPAN_TYPES
-        if len(codes) != 1 or codes[0] not in expected_set:
-            enriched.at[index, "Deterioration_Mapping_Status"] = "Unmapped"
+        enriched.loc[outlier_columns.index, "Outlier_Columns"] = (
+            outlier_columns.astype("string")
+        )
 
     return enriched
-
 
 def _build_column_profile(df: pd.DataFrame) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
@@ -1144,7 +1106,7 @@ def _build_validation_summary(
     mapping_counts = df["Deterioration_Mapping_Status"].value_counts().to_dict()
 
     critical_count = int(severity_counts.get("Critical", 0))
-    unmapped_count = int(mapping_counts.get("Unmapped", 0))
+    invalid_mapping_count = int(mapping_counts.get("Invalid", 0))
 
     return {
         "analysis_year": analysis_year,
@@ -1163,7 +1125,12 @@ def _build_validation_summary(
         "valid_row_count": int(status_counts.get("Valid", 0)),
         "review_row_count": int(status_counts.get("Review", 0)),
         "invalid_row_count": int(status_counts.get("Invalid", 0)),
-        "unmapped_deterioration_record_count": unmapped_count,
+        "direct_deterioration_record_count": int(mapping_counts.get("Direct", 0)),
+        "resolved_deterioration_record_count": int(mapping_counts.get("Resolved", 0)),
+        "provisional_deterioration_record_count": int(mapping_counts.get("Provisional", 0)),
+        "invalid_deterioration_record_count": invalid_mapping_count,
+        # Retained for backward compatibility with the existing view/app.
+        "unmapped_deterioration_record_count": invalid_mapping_count,
         "core_analysis_ready": critical_count == 0,
-        "deterioration_model_ready": unmapped_count == 0,
+        "deterioration_model_ready": invalid_mapping_count == 0,
     }

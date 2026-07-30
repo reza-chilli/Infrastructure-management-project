@@ -9,7 +9,7 @@ from src.data import DataValidationResult
 
 
 def render_data_quality_page(result: DataValidationResult) -> None:
-    """Render dataset readiness, issues, profiles, and downloadable reports."""
+    """Render dataset readiness, issues, profiles, and mapping decisions."""
 
     st.title("Data Quality & Validation")
     st.caption(
@@ -25,8 +25,8 @@ def render_data_quality_page(result: DataValidationResult) -> None:
     col3.metric("Warnings", f"{summary['warning_issue_count']:,}")
     col4.metric("Missing Source Cells", f"{summary['total_missing_cells']:,}")
     col5.metric(
-        "Unmapped Deterioration",
-        f"{summary['unmapped_deterioration_record_count']:,}",
+        "Invalid Deterioration Mappings",
+        f"{summary['invalid_deterioration_record_count']:,}",
     )
 
     if result.is_core_analysis_ready:
@@ -41,12 +41,57 @@ def render_data_quality_page(result: DataValidationResult) -> None:
         )
 
     if result.is_deterioration_model_ready:
-        st.success("All records have a directly supported deterioration mapping.")
+        st.success(
+            "Every bridge has a usable deterioration mapping. Source values "
+            "remain unchanged; inferred and provisional decisions are shown below."
+        )
     else:
-        st.warning(
-            "The deterioration model is not ready for final use. Records with "
-            "combined span types or category/span mismatches require a documented "
-            "mapping rule. No source value has been silently changed."
+        st.error(
+            "One or more bridge records cannot be mapped to the deterioration "
+            "model. Final deterioration calculations must remain blocked."
+        )
+
+    st.subheader("Deterioration Mapping Readiness")
+    mapping_readiness = pd.DataFrame(
+        {
+            "Mapping Status": ["Direct", "Resolved", "Provisional", "Invalid"],
+            "Records": [
+                summary["direct_deterioration_record_count"],
+                summary["resolved_deterioration_record_count"],
+                summary["provisional_deterioration_record_count"],
+                summary["invalid_deterioration_record_count"],
+            ],
+        }
+    ).set_index("Mapping Status")
+    st.bar_chart(mapping_readiness)
+
+    st.caption(
+        "Resolved records use the category implied by a single known span code. "
+        "Provisional records contain multiple known span codes and use the "
+        "maximum applicable component deterioration rate each year."
+    )
+
+    mapping_columns = [
+        "Structure_ID",
+        "Bridge_Cat",
+        "Unique_Span_Type",
+        "Resolved_Deterioration_Category",
+        "Resolved_Deterioration_Group",
+        "Deterioration_Mapping_Method",
+        "Deterioration_Mapping_Status",
+        "Deterioration_Mapping_Message",
+    ]
+    non_direct = result.data[
+        result.data["Deterioration_Mapping_Status"] != "Direct"
+    ][mapping_columns].copy()
+
+    if non_direct.empty:
+        st.info("All bridge records use direct deterioration mappings.")
+    else:
+        st.dataframe(
+            non_direct,
+            use_container_width=True,
+            hide_index=True,
         )
 
     st.subheader("Record Readiness")
@@ -133,6 +178,7 @@ def render_data_quality_page(result: DataValidationResult) -> None:
             "Years_Passed",
             "Data_Quality_Status",
             "Deterioration_Mapping_Status",
+            "Deterioration_Mapping_Method",
             "Outlier_Columns",
         ]
         st.dataframe(
