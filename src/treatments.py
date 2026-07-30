@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import isfinite
+from math import isfinite, isclose
 from typing import Final
+
+from collections.abc import Mapping
+
+import pandas as pd
 
 
 SQFT_PER_SQM: Final[float] = 10.763910416709722
@@ -213,6 +217,100 @@ def evaluate_treatment(
         **outcome,
     }
 
+def evaluate_recommended_treatments_for_network(
+    df: pd.DataFrame,
+    bci_weights: Mapping[str, float],
+) -> pd.DataFrame:
+    """Calculate treatment cost and post-treatment condition for each bridge."""
+
+    required_columns = [
+        "Recommended_Treatment_Code",
+        "Nominal_Bridge_Ln",
+        "Total_Clear_Roadway",
+        "current_Cond_Rat_Deck",
+        "current_Cond_Rat_Super",
+        "current_Cond_Rat_Sub",
+        "BCI",
+    ]
+
+    missing_columns = [
+        column
+        for column in required_columns
+        if column not in df.columns
+    ]
+
+    if missing_columns:
+        raise KeyError(
+            "Treatment evaluation requires these columns: "
+            + ", ".join(missing_columns)
+        )
+
+    validated_weights = _validate_bci_weights(
+        bci_weights
+    )
+
+    result = df.copy()
+
+    treatment_results = result.apply(
+        lambda row: evaluate_treatment(
+            treatment_code=row["Recommended_Treatment_Code"],
+            nominal_bridge_length_m=row["Nominal_Bridge_Ln"],
+            total_clear_roadway_m=row["Total_Clear_Roadway"],
+            deck_condition=row["current_Cond_Rat_Deck"],
+            super_condition=row["current_Cond_Rat_Super"],
+            sub_condition=row["current_Cond_Rat_Sub"],
+        ),
+        axis=1,
+        result_type="expand",
+    )
+
+    duplicate_columns = [
+        column
+        for column in treatment_results.columns
+        if column in result.columns
+    ]
+
+    if duplicate_columns:
+        result = result.drop(
+            columns=duplicate_columns
+        )
+
+    result = pd.concat(
+        [
+            result,
+            treatment_results,
+        ],
+        axis=1,
+    )
+
+    result["BCI_After_Treatment"] = (
+        validated_weights["deck"]
+        * result["Deck_After_Treatment"]
+        + validated_weights["super"]
+        * result["Super_After_Treatment"]
+        + validated_weights["sub"]
+        * result["Sub_After_Treatment"]
+    )
+
+    result["BCI_Improvement"] = (
+        result["BCI_After_Treatment"]
+        - result["BCI"]
+    ).clip(lower=0.0)
+
+    result["Treatment_Cost"] = pd.to_numeric(
+        result["Treatment_Cost"],
+        errors="coerce",
+    )
+
+    result["Treatment_Cost_per_BCI_Point"] = (
+        result["Treatment_Cost"]
+        / result["BCI_Improvement"].where(
+            result["BCI_Improvement"] > 0
+        )
+    )
+
+    return result
+
 def treatment_catalog_as_records() -> list[dict[str, str | float | None]]:
     """Return the treatment catalogue in a table-friendly format."""
 
@@ -284,3 +382,66 @@ def _validate_condition_rating(
         )
 
     return numeric_value
+
+def _validate_bci_weights(
+    weights: Mapping[str, float],
+) -> dict[str, float]:
+    """Validate BCI weights used for post-treatment BCI calculation."""
+
+    required_keys = [
+        "deck",
+        "super",
+        "sub",
+    ]
+
+    missing_keys = [
+        key
+        for key in required_keys
+        if key not in weights
+    ]
+
+    if missing_keys:
+        raise ValueError(
+            "BCI weights are missing these keys: "
+            + ", ".join(missing_keys)
+        )
+
+    validated_weights: dict[str, float] = {}
+
+    for key in required_keys:
+        try:
+            numeric_value = float(weights[key])
+
+        except (TypeError, ValueError) as exc:
+            raise ValueError(
+                f"BCI weight {key!r} must be numeric."
+            ) from exc
+
+        if not isfinite(numeric_value):
+            raise ValueError(
+                f"BCI weight {key!r} must be finite."
+            )
+
+        if numeric_value < 0:
+            raise ValueError(
+                f"BCI weight {key!r} cannot be negative."
+            )
+
+        validated_weights[key] = numeric_value
+
+    total_weight = sum(
+        validated_weights.values()
+    )
+
+    if not isclose(
+        total_weight,
+        1.0,
+        rel_tol=1e-9,
+        abs_tol=1e-9,
+    ):
+        raise ValueError(
+            "BCI weights must sum to 1.00; "
+            f"received {total_weight:.4f}."
+        )
+
+    return validated_weights

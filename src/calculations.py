@@ -14,6 +14,11 @@ from src.deterioration import (
     calculate_decay,
     load_deterioration_rates,
 )
+
+from src.treatments import (
+    evaluate_recommended_treatments_for_network,
+)
+
 from src.treatment_policy import recommend_treatments_for_network
 
 
@@ -249,17 +254,19 @@ def run_all_calculations(
         right=False,
     ).astype("string")
 
-    df_processed = recommend_treatments_for_network(
-        df_processed
+    df_processed = evaluate_recommended_treatments_for_network(
+        df=df_processed,
+        bci_weights=bci_weights,
     )
 
-    lowest_bci = df_processed.nsmallest(
-        20,
-        "BCI",
-    ).copy()
+    lowest_bci = (
+        df_processed
+        .nsmallest(20, "BCI")
+        .copy()
+    )
 
     # Ranked subsets are created only after all required columns exist.
-    lowest_bci = df_processed.nsmallest(20, "BCI").copy()
+    
     top10 = (
         df_processed
         .sort_values(
