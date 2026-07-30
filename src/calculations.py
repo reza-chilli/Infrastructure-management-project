@@ -234,15 +234,18 @@ def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFr
 
     df_processed["Age"] = current_year - df_processed["First_Year_In_Service"]
     # priority score
-    if 'Priority_Weights' in st.session_state:
-        weights = st.session_state['Priority_Weights']
-        w_bci = weights['bci']
-        w_traffic = weights['traffic']
-        w_replacement_cost = weights['Replacement_Cost']
+    if "Priority_Weights" in st.session_state:
+        weights = st.session_state["Priority_Weights"]
+
+        w_bci = weights["bci"]
+        w_traffic = weights["traffic"]
+        w_replacement_cost = weights["replacement_cost"]
+
     else:
         w_bci = 0.50
         w_traffic = 0.30
         w_replacement_cost = 0.20
+
     df_processed["Condition_Score"] = normalize(100 - df_processed["BCI"])
     df_processed["Traffic_Score"] = normalize(df_processed["Traffic_Volume"])
     df_processed["Cost_Score"] = normalize(df_processed["Replacement_Cost"])
