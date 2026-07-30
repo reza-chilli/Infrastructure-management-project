@@ -165,8 +165,34 @@ def calculate_bci(df: pd.DataFrame, w_deck: float, w_super: float, w_sub: float)
     return df_temp
 
 
-def normalize(series):
-    return ((series - series.min()) / (series.max() - series.min())) * 100
+def normalize(series: pd.Series) -> pd.Series:
+    numeric_series = pd.to_numeric(series, errors="coerce")
+
+    normalized = pd.Series(
+        np.nan,
+        index=numeric_series.index,
+        dtype=float,
+    )
+
+    valid_values = numeric_series.dropna()
+
+    if valid_values.empty:
+        return normalized
+
+    min_value = valid_values.min()
+    max_value = valid_values.max()
+
+    if np.isclose(max_value, min_value):
+        normalized.loc[numeric_series.notna()] = 0.0
+        return normalized
+
+    normalized.loc[numeric_series.notna()] = (
+        (numeric_series.loc[numeric_series.notna()] - min_value)
+        / (max_value - min_value)
+        * 100
+    )
+
+    return normalized
 
 
 def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -220,7 +246,7 @@ def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFr
         + w_super * df_processed["current_Cond_Rat_Super"]
         + w_sub * df_processed["current_Cond_Rat_Sub"]
     )
-    lowest_bci = df_processed.sort_values("BCI").head(20)
+    
     # end bci calculation
 
     summary = pd.DataFrame(
@@ -255,13 +281,6 @@ def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFr
         + w_replacement_cost * df_processed["Cost_Score"]
     )
 
-    top10 = (
-        df_processed.sort_values(
-            "Priority Score",
-            ascending=False,
-        )
-        .head(10)
-    )
     # end priority score
 
     df_processed["Bridge_condition_Cat"] = np.where(
@@ -272,6 +291,18 @@ def run_all_calculations(df: pd.DataFrame, current_year: int) -> tuple[pd.DataFr
             "Fair",
             "Poor",
         ),
+    )
+
+    lowest_bci = (
+        df_processed
+        .nsmallest(20, "BCI")
+        .copy()
+    )
+
+    top10 = (
+        df_processed
+        .nlargest(10, "Priority Score")
+        .copy()
     )
 
     # kpi calculation
