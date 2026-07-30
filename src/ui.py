@@ -33,7 +33,7 @@ def render_sidebar():
                         'sub': bridge_sub_structure_weight
                     }
                     st.toast("Weights Applied Successfully!", icon="✅") 
-                    st.rerun()
+                    
             else:
                 st.error(f"Total: {total_weight}% (Must be 100%)")
                 st.button("Apply BCI Changes", disabled=True)
@@ -51,7 +51,7 @@ def render_sidebar():
                         'replacement_cost': replacement_cost_w / 100
                     }
                     st.toast("Weights Applied Successfully!", icon="✅") 
-                    st.rerun()
+                    
             else:
                 st.error(f"Total: {total_weight}% (Must be 100%)")
                 st.button("Apply PI Changes", disabled=True)
@@ -78,6 +78,7 @@ def render_sidebar():
             ],
             menu_icon="cast",
             default_index=0,
+            key="main_navigation",
             styles={
                 "container": {
                     "padding": "0!important",

@@ -14,9 +14,10 @@ EXCEL_PATH = "ToR Structures_Data_Updated- bahman 1405.xlsx"
 
 df = load_and_preprocess_data(EXCEL_PATH)
 
+page = render_sidebar()
+
 df_processed, summary, top10, lowest_bci, kpiCardInfo = run_all_calculations(df, current_year=current_year)
 
-page = render_sidebar()
 if page == "Bridge Network Assessment":
     st.title("Bridge Network Assessment")
     firstRowCol1, firstRowCol2 = st.columns([6.7, 3.3])
