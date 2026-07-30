@@ -1,20 +1,46 @@
 import streamlit as st
 from src.calculations import run_all_calculations
 from src.plots import plot_bridge_category_distribution, plot_age_distribution, plot_bci_distribution, plot_current_condition_ratings, plot_age_vs_bci, plot_traffic_vs_replacement_cost, plot_inspection_recency, plot_condition_category_distribution
-from src.data import get_current_year, load_and_preprocess_data
+from src.data import get_current_year, load_and_validate_data
 from src.ui import render_linear_output, render_sidebar
 from src.views.prioritization import render_prioritization_page
+from src.views.data_quality import render_data_quality_page
 
 st.set_page_config(page_title="Bridge Analysis", layout="wide")
 
-current_year = get_current_year()
-st.write(f"Current Year: {current_year}")
-
 EXCEL_PATH = "ToR Structures_Data_Updated- bahman 1405.xlsx"
 
-df = load_and_preprocess_data(EXCEL_PATH)
+current_year = get_current_year()
+
+validation_result = load_and_validate_data(
+    EXCEL_PATH,
+    current_year=current_year,
+)
+
+df = validation_result.data
 
 page = render_sidebar()
+
+if page == "Data Quality & Validation":
+    render_data_quality_page(validation_result)
+    st.stop()
+
+
+# Criticl issue control
+if validation_result.has_critical_issues:
+    st.error(
+        "Critical data-quality issues must be corrected "
+        "before analysis can continue."
+    )
+    render_data_quality_page(validation_result)
+    st.stop()
+
+# Non-blocking Warning
+if not validation_result.is_deterioration_model_ready:
+    st.warning(
+        "Some records do not yet have a valid deterioration mapping. "
+        "Review the Data Quality & Validation page."
+    )
 
 df_processed, summary, top10, lowest_bci, kpiCardInfo = run_all_calculations(df, current_year=current_year)
 

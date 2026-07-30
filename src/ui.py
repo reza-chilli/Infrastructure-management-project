@@ -63,6 +63,7 @@ def render_sidebar():
         selected_page = option_menu(
             menu_title=None,
             options=[
+                "Data Quality & Validation",
                 "Bridge Network Assessment", 
                 "Development of a Prioritization Framework", 
                 "Maintenance and Rehabilitation Strategy", 
@@ -70,6 +71,7 @@ def render_sidebar():
                 "Communication of Results"
             ],
             icons=[
+                "database-check",
                 "diagram-3",
                 "ui-checks-grid",
                 "tools",
@@ -85,7 +87,7 @@ def render_sidebar():
                     "background-color": "transparent",
                 },
                 "icon": {
-                    "color": "#4F8BF9",
+                    "color": "#B2B9FF",
                     "font-size": "18px",
                 },
                 "nav-link": {
