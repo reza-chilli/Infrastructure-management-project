@@ -3,6 +3,7 @@ from src.calculations import run_all_calculations
 from src.plots import plot_bridge_category_distribution, plot_age_distribution, plot_bci_distribution, plot_current_condition_ratings, plot_age_vs_bci, plot_traffic_vs_replacement_cost, plot_inspection_recency, plot_condition_category_distribution
 from src.data import get_current_year, load_and_preprocess_data
 from src.ui import render_linear_output, render_sidebar
+from src.views.prioritization import render_prioritization_page
 
 st.set_page_config(page_title="Bridge Analysis", layout="wide")
 
@@ -127,9 +128,8 @@ if page == "Bridge Network Assessment":
 
 
 
-elif page == "Developement of a Prioritization Framework":
-    st.title("Developement of a Prioritization Framework")
-    st.write("This is the Developement of a Prioritization Framework page.")
+elif page == "Development of a Prioritization Framework":
+    render_prioritization_page(top10)
 
 elif page == "Maintenance and Rehabilitation Strategy":
     st.title("Maintenance and Rehabilitation Strategy")

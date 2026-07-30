@@ -64,7 +64,7 @@ def render_sidebar():
             menu_title=None,
             options=[
                 "Bridge Network Assessment", 
-                "Developement of a Prioritization Framework", 
+                "Development of a Prioritization Framework", 
                 "Maintenance and Rehabilitation Strategy", 
                 "Budget Scenario Analysis",
                 "Communication of Results"
