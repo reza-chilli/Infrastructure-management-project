@@ -186,6 +186,15 @@ def run_all_calculations(
         + priority_weights["replacement_cost"] * df_processed["Cost_Score"]
     )
 
+    df_processed["Priority Rank"] = (
+    df_processed["Priority Score"]
+    .rank(
+        method="min",
+        ascending=False,
+    )
+    .astype("Int64")
+)
+
     df_processed["Bridge_condition_Cat"] = np.where(
         df_processed["BCI"] >= 70,
         "Good",
@@ -194,7 +203,21 @@ def run_all_calculations(
 
     # Ranked subsets are created only after all required columns exist.
     lowest_bci = df_processed.nsmallest(20, "BCI").copy()
-    top10 = df_processed.nlargest(10, "Priority Score").copy()
+    top10 = (
+        df_processed
+        .sort_values(
+            by=[
+                "Priority Rank",
+                "Structure_ID",
+            ],
+            ascending=[
+                True,
+                True,
+            ],
+        )
+        .head(10)
+        .copy()
+    )
 
     summary = pd.DataFrame(
         {

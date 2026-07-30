@@ -1,8 +1,10 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 def render_prioritization_page(
+    df_processed: pd.DataFrame,
     top10: pd.DataFrame,
 ) -> None:
     """Render the bridge prioritization page."""
@@ -14,11 +16,63 @@ def render_prioritization_page(
         "and replacement cost criteria."
     )
 
+    priority_weights = st.session_state.get(
+        "Priority_Weights",
+        {
+            "bci": 0.50,
+            "traffic": 0.30,
+            "replacement_cost": 0.20,
+        },
+    )
+
+    w_bci = priority_weights.get("bci", 0.50)
+    w_traffic = priority_weights.get("traffic", 0.30)
+    w_cost = priority_weights.get("replacement_cost", 0.20)
+
+    weight_sum = w_bci + w_traffic + w_cost
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric(
+        "Condition Weight",
+        f"{w_bci:.0%}",
+    )
+
+    col2.metric(
+        "Traffic Weight",
+        f"{w_traffic:.0%}",
+    )
+
+    col3.metric(
+        "Replacement Cost Weight",
+        f"{w_cost:.0%}",
+    )
+
+    col4.metric(
+        "Total Weight",
+        f"{weight_sum:.0%}",
+    )
+
+    st.info(
+        "Priority Score = "
+        f"({w_bci:.0%} × Condition Score) + "
+        f"({w_traffic:.0%} × Traffic Score) + "
+        f"({w_cost:.0%} × Cost Score)"
+    )
+
+    if not np.isclose(weight_sum, 1.0):
+        st.error(
+            "The prioritization weights must add up to 100%. "
+            f"Current total: {weight_sum:.1%}"
+        )
+        return
+
     if top10.empty:
         st.warning("No prioritization results are available.")
         return
 
     required_columns = [
+        "Priority Rank",
         "Structure_ID",
         "Bridge_Cat",
         "Unique_Span_Type",
@@ -46,12 +100,6 @@ def render_prioritization_page(
         return
 
     top10_table = top10[required_columns].copy()
-
-    top10_table.insert(
-        0,
-        "Priority Rank",
-        range(1, len(top10_table) + 1),
-    )
 
     st.subheader("Top 10 Priority Bridges")
 
@@ -158,3 +206,134 @@ def render_prioritization_page(
     )
 
     plt.close(fig)
+
+    st.subheader("Complete Bridge Priority Ranking")
+
+    full_ranking_columns = [
+        "Priority Rank",
+        "Structure_ID",
+        "Bridge_Cat",
+        "Unique_Span_Type",
+        "BCI",
+        "Bridge_condition_Cat",
+        "Condition_Score",
+        "Traffic_Volume",
+        "Traffic_Score",
+        "Replacement_Cost",
+        "Cost_Score",
+        "Priority Score",
+    ]
+
+    missing_full_columns = [
+        column
+        for column in full_ranking_columns
+        if column not in df_processed.columns
+    ]
+
+    if missing_full_columns:
+        st.error(
+            "The complete ranking is missing these columns: "
+            + ", ".join(missing_full_columns)
+        )
+        return
+
+    full_ranking = (
+        df_processed[full_ranking_columns]
+        .sort_values(
+            by=[
+                "Priority Rank",
+                "Structure_ID",
+            ],
+            ascending=[
+                True,
+                True,
+            ],
+        )
+        .copy()
+    )
+
+    filter_col1, filter_col2 = st.columns(2)
+
+    condition_options = sorted(
+        full_ranking["Bridge_condition_Cat"]
+        .dropna()
+        .unique()
+        .tolist()
+    )
+
+    selected_conditions = filter_col1.multiselect(
+        "Condition Category",
+        options=condition_options,
+        default=condition_options,
+    )
+
+    bridge_category_options = sorted(
+        full_ranking["Bridge_Cat"]
+        .dropna()
+        .unique()
+        .tolist()
+    )
+
+    selected_bridge_categories = filter_col2.multiselect(
+        "Bridge Category",
+        options=bridge_category_options,
+        default=bridge_category_options,
+    )
+
+    filtered_ranking = full_ranking[
+        full_ranking["Bridge_condition_Cat"].isin(
+            selected_conditions
+        )
+        & full_ranking["Bridge_Cat"].isin(
+            selected_bridge_categories
+        )
+    ].copy()
+
+    st.caption(
+        f"Displaying {len(filtered_ranking)} of "
+        f"{len(full_ranking)} bridges."
+    )
+
+    st.dataframe(
+        filtered_ranking,
+        column_config={
+            "Priority Rank": st.column_config.NumberColumn(
+                "Rank",
+                format="%d",
+            ),
+            "Structure_ID": "Structure ID",
+            "Bridge_Cat": "Bridge Category",
+            "Unique_Span_Type": "Span Type",
+            "BCI": st.column_config.NumberColumn(
+                "BCI",
+                format="%.2f",
+            ),
+            "Bridge_condition_Cat": "Condition Category",
+            "Condition_Score": st.column_config.NumberColumn(
+                "Condition Score",
+                format="%.2f",
+            ),
+            "Traffic_Volume": st.column_config.NumberColumn(
+                "Traffic Volume",
+                format="%,d",
+            ),
+            "Traffic_Score": st.column_config.NumberColumn(
+                "Traffic Score",
+                format="%.2f",
+            ),
+            "Replacement_Cost": st.column_config.NumberColumn(
+                "Replacement Cost",
+                format="$%,.0f",
+            ),
+            "Cost_Score": st.column_config.NumberColumn(
+                "Cost Score",
+                format="%.2f",
+            ),
+            "Priority Score": st.column_config.NumberColumn(
+                "Priority Score",
+                format="%.2f",
+            ),
+        },
+        use_container_width=True,
+        hide_index=True,
+    )

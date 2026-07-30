@@ -175,7 +175,10 @@ if page == "Bridge Network Assessment":
 
 
 elif page == "Development of a Prioritization Framework":
-    render_prioritization_page(top10)
+    render_prioritization_page(
+        df_processed=df_processed,
+        top10=top10,
+    )
 
 elif page == "Maintenance and Rehabilitation Strategy":
     st.title("Maintenance and Rehabilitation Strategy")
