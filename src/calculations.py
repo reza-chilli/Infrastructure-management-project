@@ -160,7 +160,7 @@ def run_all_calculations(
         "super": float(bci_weights.get("super", 0.35)),
         "sub": float(bci_weights.get("sub", 0.35)),
     }
-    
+
     df_processed = calculate_bci(
         df=df_processed,
         w_deck=bci_weights["deck"],
@@ -222,50 +222,17 @@ def run_all_calculations(
         df_processed
     )
 
-    df_processed["Bridge_condition_Cat"] = pd.cut(
-        df_processed["BCI"],
-        bins=[
-            -np.inf,
-            50,
-            70,
-            np.inf,
-        ],
-        labels=[
-            "Poor",
-            "Fair",
-            "Good",
-        ],
-        right=False,
-    ).astype("string")
-
-    df_processed["Bridge_condition_Cat"] = pd.cut(
-        df_processed["BCI"],
-        bins=[
-            -np.inf,
-            50,
-            70,
-            np.inf,
-        ],
-        labels=[
-            "Poor",
-            "Fair",
-            "Good",
-        ],
-        right=False,
-    ).astype("string")
-
     df_processed = evaluate_recommended_treatments_for_network(
         df=df_processed,
         bci_weights=bci_weights,
     )
 
+    # Ranked subsets are created only after all required columns exist.
     lowest_bci = (
         df_processed
         .nsmallest(20, "BCI")
         .copy()
     )
-
-    # Ranked subsets are created only after all required columns exist.
     
     top10 = (
         df_processed
