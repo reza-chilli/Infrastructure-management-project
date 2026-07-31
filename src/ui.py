@@ -108,7 +108,3 @@ def render_sidebar():
         )
 
     return selected_page
-
-
-def render_linear_output(results):
-    print('hello from python')

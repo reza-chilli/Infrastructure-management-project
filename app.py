@@ -2,7 +2,7 @@ import streamlit as st
 from src.calculations import run_all_calculations
 from src.plots import plot_bridge_category_distribution, plot_age_distribution, plot_bci_distribution, plot_current_condition_ratings, plot_age_vs_bci, plot_traffic_vs_replacement_cost, plot_inspection_recency, plot_condition_category_distribution
 from src.data import get_current_year, load_and_validate_data, DataSchemaError
-from src.ui import render_linear_output, render_sidebar
+from src.ui import render_sidebar
 from src.views.prioritization import render_prioritization_page
 from src.views.data_quality import render_data_quality_page
 from src.views.maintenance_strategy import (
@@ -201,4 +201,3 @@ elif page == "Budget Scenario Analysis":
 elif page == "Communication of Results":
     st.title("Communication of Results")
     st.write("This is the Communication of Results page.")
-# render_linear_output(results)
