@@ -189,3 +189,20 @@ def plot_condition_category_distribution(df):
 
     ax.set_title("Bridge Network Condition (FHWA)", fontsize=14, weight="bold")
     return fig
+
+
+def plot_annual_costs_vs_budget(annual_costs, annual_budget):
+    years = range(1, len(annual_costs) + 1)
+    remaining_budget = [max(annual_budget - cost, 0) for cost in annual_costs]
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    ax.bar(years, annual_costs, label="Spent", color="steelblue")
+    ax.bar(years, remaining_budget, bottom=annual_costs, label="Remaining", color="lightgray")
+
+    ax.set_xlabel("Year")
+    ax.set_ylabel("Cost")
+    ax.set_title("Annual Costs vs Budget")
+    ax.legend()
+
+    return fig
