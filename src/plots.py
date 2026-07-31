@@ -206,3 +206,25 @@ def plot_annual_costs_vs_budget(annual_costs, annual_budget):
     ax.legend()
 
     return fig
+
+
+def plot_condition_category_distribution_end_of_program(df, customTitle):
+    counts = df["End_Condition_Category"].value_counts().reindex(["Good", "Fair", "Poor"], fill_value=0)
+
+    colors = ["#2ec4b6", "#ffbf69", "#e71d36"]
+
+    fig, ax = plt.subplots(figsize=(6, 6))
+    wedges, texts = ax.pie(
+        counts.values,
+        labels=counts.index,
+        startangle=90,
+        colors=colors,
+        wedgeprops=dict(width=0.4, edgecolor="w")
+    )
+
+    for text in texts:
+        text.set_color("#333333")
+        text.set_fontsize(11)
+
+    ax.set_title(customTitle, fontsize=14, weight="bold")
+    return fig
