@@ -186,6 +186,8 @@ elif page == "Development of a Prioritization Framework":
 elif page == "Maintenance Strategy":
     render_maintenance_strategy_page(
         df_processed=df_processed,
+        current_year=current_year,
+        workbook_path=EXCEL_PATH,
     )
 
 elif page == "Maintenance and Rehabilitation Strategy":
