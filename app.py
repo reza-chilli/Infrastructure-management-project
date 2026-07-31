@@ -8,6 +8,9 @@ from src.views.data_quality import render_data_quality_page
 from src.views.maintenance_strategy import (
     render_maintenance_strategy_page,
 )
+from src.views.budget_scenario import (
+   render_budget_scenario_page
+)
 
 st.set_page_config(page_title="Bridge Analysis", layout="wide")
 
@@ -183,20 +186,19 @@ elif page == "Development of a Prioritization Framework":
         top10=top10,
     )
 
-elif page == "Maintenance Strategy":
+elif page == "Maintenance and Rehabilitation Strategy":
     render_maintenance_strategy_page(
         df_processed=df_processed,
         current_year=current_year,
         workbook_path=EXCEL_PATH,
     )
 
-elif page == "Maintenance and Rehabilitation Strategy":
-    st.title("Maintenance and Rehabilitation Strategy")
-    st.write("This is the Maintenance and Rehabilitation Strategy page.")
-
 elif page == "Budget Scenario Analysis":
-    st.title("Budget Scenario Analysis")
-    st.write("This is the Budget Scenario Analysis page.")
+    render_budget_scenario_page(
+        df_processed=df_processed,
+        current_year=current_year,
+        workbook_path=EXCEL_PATH,
+    )
 
 elif page == "Communication of Results":
     st.title("Communication of Results")
