@@ -216,15 +216,10 @@ def plot_condition_category_distribution_end_of_program(df, customTitle):
     fig, ax = plt.subplots(figsize=(6, 6))
     wedges, texts = ax.pie(
         counts.values,
-        labels=counts.index,
         startangle=90,
         colors=colors,
         wedgeprops=dict(width=0.4, edgecolor="w")
     )
-
-    for text in texts:
-        text.set_color("#333333")
-        text.set_fontsize(11)
 
     ax.set_title(customTitle, fontsize=14, weight="bold")
     return fig
