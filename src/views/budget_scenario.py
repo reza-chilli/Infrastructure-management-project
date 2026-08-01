@@ -32,12 +32,14 @@ def render_budget_scenario_page(
     with baseLineBudgetCol:
       st.subheader("Base Budget Scenario")
       totalAnnualBudget = annualBudgetSettings["baseline_budget"]
-      st.write(f"Annual Budget: {totalAnnualBudget} USD")
+      st.write(f"Annual Budget: {totalAnnualBudget:,.0f} USD")
       detailedBaselineBudgetPlan = detailedPlan.query("Scenario == 'Baseline Budget'")
 
       fundedPlans = detailedBaselineBudgetPlan.query("Funded")
       annual_funded_costs_series = fundedPlans.groupby("Plan_Year")["Treatment_Cost"].sum()
       annual_funded_costs_list = annual_funded_costs_series.tolist()
+      baseLineBudgetPv = calculate_pv(annual_funded_costs_list, DEFAULT_DISCOUNT_RATE)
+      st.write(f"Total Cost PV: ${baseLineBudgetPv:,.0f}")
       fig1 = plot_annual_costs_vs_budget(
         annual_funded_costs_list,
         totalAnnualBudget
@@ -48,18 +50,17 @@ def render_budget_scenario_page(
       with col11:
         fig2 = plot_condition_category_distribution_end_of_program(endOfProgramBridgeData, "Baseline Network Condition")
         st.pyplot(fig2, use_container_width=False)
-
-      baseLineBudgetPv = calculate_pv(annual_funded_costs_list, DEFAULT_DISCOUNT_RATE)
-      st.write(f"Total Cost PV: ${baseLineBudgetPv:,.0f}")
     with constrainedBudgetCol:
       st.subheader("Constrained Budget Scenario")
       totalAnnualBudget = annualBudgetSettings["baseline_budget"] * (100 - annualBudgetSettings["constrained_reduction_pct"]) / 100
-      st.write(f"Annual Budget: {totalAnnualBudget} USD")
+      st.write(f"Annual Budget: {totalAnnualBudget:,.0f} USD")
       detailedConstrainedBudgetPlan = detailedPlan.query("Scenario == 'Constrained Budget'")
 
       fundedPlans = detailedConstrainedBudgetPlan.query("Funded")
       annual_funded_costs_series = fundedPlans.groupby("Plan_Year")["Treatment_Cost"].sum()
       annual_funded_costs_list = annual_funded_costs_series.tolist()
+      constrainedBudgetPv = calculate_pv(annual_funded_costs_list, DEFAULT_DISCOUNT_RATE)
+      st.write(f"Total Cost PV: ${constrainedBudgetPv:,.0f}")
       fig1 = plot_annual_costs_vs_budget(
         annual_funded_costs_list,
         totalAnnualBudget
@@ -93,6 +94,3 @@ def render_budget_scenario_page(
               </div>
           </div>
         """, unsafe_allow_html=True)
-
-      constrainedBudgetPv = calculate_pv(annual_funded_costs_list, DEFAULT_DISCOUNT_RATE)
-      st.write(f"Total Cost PV: ${constrainedBudgetPv:,.0f}")
