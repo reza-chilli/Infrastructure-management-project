@@ -39,7 +39,7 @@ def render_budget_scenario_page(
       annual_funded_costs_series = fundedPlans.groupby("Plan_Year")["Treatment_Cost"].sum()
       annual_funded_costs_list = annual_funded_costs_series.tolist()
       baseLineBudgetPv = calculate_pv(annual_funded_costs_list, DEFAULT_DISCOUNT_RATE)
-      st.write(f"Total Cost PV: ${baseLineBudgetPv:,.0f}")
+      st.write(f"Total Cost PV: ${baseLineBudgetPv:,.0f} USD")
       fig1 = plot_annual_costs_vs_budget(
         annual_funded_costs_list,
         totalAnnualBudget
@@ -60,7 +60,7 @@ def render_budget_scenario_page(
       annual_funded_costs_series = fundedPlans.groupby("Plan_Year")["Treatment_Cost"].sum()
       annual_funded_costs_list = annual_funded_costs_series.tolist()
       constrainedBudgetPv = calculate_pv(annual_funded_costs_list, DEFAULT_DISCOUNT_RATE)
-      st.write(f"Total Cost PV: ${constrainedBudgetPv:,.0f}")
+      st.write(f"Total Cost PV: ${constrainedBudgetPv:,.0f} USD")
       fig1 = plot_annual_costs_vs_budget(
         annual_funded_costs_list,
         totalAnnualBudget
