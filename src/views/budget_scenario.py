@@ -38,17 +38,21 @@ def render_budget_scenario_page(
       fundedPlans = detailedBaselineBudgetPlan.query("Funded")
       annual_funded_costs_series = fundedPlans.groupby("Plan_Year")["Treatment_Cost"].sum()
       annual_funded_costs_list = annual_funded_costs_series.tolist()
+      # calculate costs PV
       baseLineBudgetPv = calculate_pv(annual_funded_costs_list, DEFAULT_DISCOUNT_RATE)
       st.write(f"Total Costs PV: ${baseLineBudgetPv:,.0f} USD")
+      # calculate remaining budget PV
       remaining_budget = [totalAnnualBudget - cost for cost in annual_funded_costs_list]
       remainingBudgetPv = calculate_pv(remaining_budget, DEFAULT_DISCOUNT_RATE)
       st.write(f"Remaining Budget PV: ${remainingBudgetPv:,.0f} USD")
+      endOfProgramBridgeData = detailedBaselineBudgetPlan.query(f"Plan_Year == {DEFAULT_HORIZON_YEARS}")
+      average_bci = endOfProgramBridgeData["BCI_End_of_Year"].mean()
+      st.write(f"Average Network BCI: ${average_bci:,.0f} %")
       fig1 = plot_annual_costs_vs_budget(
         annual_funded_costs_list,
         totalAnnualBudget
       )
       st.pyplot(fig1, use_container_width=False)
-      endOfProgramBridgeData = detailedBaselineBudgetPlan.query(f"Plan_Year == {DEFAULT_HORIZON_YEARS}")
       col11, col22 = st.columns([7, 3])
       with col11:
         fig2 = plot_condition_category_distribution_end_of_program(endOfProgramBridgeData, "Baseline Network Condition")
@@ -62,17 +66,21 @@ def render_budget_scenario_page(
       fundedPlans = detailedConstrainedBudgetPlan.query("Funded")
       annual_funded_costs_series = fundedPlans.groupby("Plan_Year")["Treatment_Cost"].sum()
       annual_funded_costs_list = annual_funded_costs_series.tolist()
+      # calculate costs PV
       constrainedBudgetPv = calculate_pv(annual_funded_costs_list, DEFAULT_DISCOUNT_RATE)
       st.write(f"Total Costs PV: ${constrainedBudgetPv:,.0f} USD")
       remaining_budget = [totalAnnualBudget - cost for cost in annual_funded_costs_list]
+      # calculate remaining budget PV
       remainingBudgetPv = calculate_pv(remaining_budget, DEFAULT_DISCOUNT_RATE)
       st.write(f"Remaining Budget PV: ${remainingBudgetPv:,.0f} USD")
+      endOfProgramBridgeData = detailedConstrainedBudgetPlan.query(f"Plan_Year == {DEFAULT_HORIZON_YEARS}")
+      average_bci = endOfProgramBridgeData["BCI_End_of_Year"].mean()
+      st.write(f"Average Network BCI: ${average_bci:,.0f} %")
       fig1 = plot_annual_costs_vs_budget(
         annual_funded_costs_list,
         totalAnnualBudget
       )
       st.pyplot(fig1, use_container_width=False)
-      endOfProgramBridgeData = detailedConstrainedBudgetPlan.query(f"Plan_Year == {DEFAULT_HORIZON_YEARS}")
       col11, col22 = st.columns([7, 3])
       with col11:
         fig2 = plot_condition_category_distribution_end_of_program(endOfProgramBridgeData, "Constrained Budget Network Condition")
