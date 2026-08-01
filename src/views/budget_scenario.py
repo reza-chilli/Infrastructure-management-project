@@ -68,14 +68,14 @@ def render_budget_scenario_page(
       annual_funded_costs_list = annual_funded_costs_series.tolist()
       # calculate costs PV
       constrainedBudgetPv = calculate_pv(annual_funded_costs_list, DEFAULT_DISCOUNT_RATE)
-      st.write(f"Total Costs PV: ${constrainedBudgetPv:,.0f} USD")
+      st.write(f"Total Costs PV: {constrainedBudgetPv:,.0f} USD")
       remaining_budget = [totalAnnualBudget - cost for cost in annual_funded_costs_list]
       # calculate remaining budget PV
       remainingBudgetPv = calculate_pv(remaining_budget, DEFAULT_DISCOUNT_RATE)
       st.write(f"Remaining Budget PV: ${remainingBudgetPv:,.0f} USD")
       endOfProgramBridgeData = detailedConstrainedBudgetPlan.query(f"Plan_Year == {DEFAULT_HORIZON_YEARS}")
       average_bci = endOfProgramBridgeData["BCI_End_of_Year"].mean(skipna=True)
-      st.write(f"Average Network BCI: ${average_bci:,.0f} %")
+      st.write(f"Average Network BCI: {average_bci:,.0f} %")
       fig1 = plot_annual_costs_vs_budget(
         annual_funded_costs_list,
         totalAnnualBudget
