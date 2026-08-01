@@ -3,8 +3,9 @@ import streamlit as st
 
 from pathlib import Path
 
-from src.five_year_plan import DEFAULT_HORIZON_YEARS
+from src.five_year_plan import DEFAULT_HORIZON_YEARS, DEFAULT_DISCOUNT_RATE
 from src.plots import plot_annual_costs_vs_budget, plot_condition_category_distribution_end_of_program
+from src.calculations import calculate_pv
 
 
 def render_budget_scenario_page(
@@ -47,6 +48,9 @@ def render_budget_scenario_page(
       with col11:
         fig2 = plot_condition_category_distribution_end_of_program(endOfProgramBridgeData, "Baseline Network Condition")
         st.pyplot(fig2, use_container_width=False)
+
+      baseLineBudgetPv = calculate_pv(annual_funded_costs_list, DEFAULT_DISCOUNT_RATE)
+      st.write(f"Total Cost PV: ${baseLineBudgetPv:,.0f}")
     with constrainedBudgetCol:
       st.subheader("Constrained Budget Scenario")
       totalAnnualBudget = annualBudgetSettings["baseline_budget"] * (100 - annualBudgetSettings["constrained_reduction_pct"]) / 100
@@ -89,3 +93,6 @@ def render_budget_scenario_page(
               </div>
           </div>
         """, unsafe_allow_html=True)
+
+      constrainedBudgetPv = calculate_pv(annual_funded_costs_list, DEFAULT_DISCOUNT_RATE)
+      st.write(f"Total Cost PV: ${constrainedBudgetPv:,.0f}")

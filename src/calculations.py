@@ -285,3 +285,13 @@ def _validate_weights(weights: dict[str, float], label: str) -> None:
         raise ValueError(
             f"{label} weights must sum to 1.00; received {values.sum():.4f}."
         )
+
+def calculate_pv(cash_flows, discount_rate):
+    """
+    Present Value (PV) of a series of yearly cash flows.
+    """
+    pv = 0.0
+    for i, cost in enumerate(cash_flows):
+        year = i + 1
+        pv += cost / ((1 + discount_rate) ** year)
+    return pv
