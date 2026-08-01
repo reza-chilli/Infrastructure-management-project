@@ -46,7 +46,7 @@ def render_budget_scenario_page(
       remainingBudgetPv = calculate_pv(remaining_budget, DEFAULT_DISCOUNT_RATE)
       st.write(f"Remaining Budget PV: ${remainingBudgetPv:,.0f} USD")
       endOfProgramBridgeData = detailedBaselineBudgetPlan.query(f"Plan_Year == {DEFAULT_HORIZON_YEARS}")
-      average_bci = endOfProgramBridgeData["BCI_End_of_Year"].mean()
+      average_bci = endOfProgramBridgeData["BCI_End_of_Year"].mean(skipna=True)
       st.write(f"Average Network BCI: ${average_bci:,.0f} %")
       fig1 = plot_annual_costs_vs_budget(
         annual_funded_costs_list,
@@ -74,7 +74,7 @@ def render_budget_scenario_page(
       remainingBudgetPv = calculate_pv(remaining_budget, DEFAULT_DISCOUNT_RATE)
       st.write(f"Remaining Budget PV: ${remainingBudgetPv:,.0f} USD")
       endOfProgramBridgeData = detailedConstrainedBudgetPlan.query(f"Plan_Year == {DEFAULT_HORIZON_YEARS}")
-      average_bci = endOfProgramBridgeData["BCI_End_of_Year"].mean()
+      average_bci = endOfProgramBridgeData["BCI_End_of_Year"].mean(skipna=True)
       st.write(f"Average Network BCI: ${average_bci:,.0f} %")
       fig1 = plot_annual_costs_vs_budget(
         annual_funded_costs_list,
