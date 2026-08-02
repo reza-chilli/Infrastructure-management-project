@@ -27,6 +27,12 @@ def render_budget_scenario_page(
     detailedPlan = st.session_state.get(
       "five_year_plan_detail",
     )
+    if (
+        "five_year_plan_settings" not in st.session_state
+        or "five_year_plan_detail" not in st.session_state
+    ):
+      st.warning("Please execute the budget scenarios first.")
+      st.stop()
     detailedPlan = pd.DataFrame(detailedPlan)
     baseLineBudgetCol, constrainedBudgetCol = st.columns(2)
     with baseLineBudgetCol:
