@@ -18,18 +18,18 @@ def render_budget_scenario_page(
     st.title("Budget Scenario Analysis")
     st.caption(
         "Current recommendations show unconstrained engineering need. "
-        "The five-year plan then determines which actions can actually be "
+        "The fifteen-year plan then determines which actions can actually be "
         "programmed under baseline and constrained annual budgets."
     )
     annualBudgetSettings = st.session_state.get(
-      "five_year_plan_settings",
+      "fifteen_year_plan_settings",
     )
     detailedPlan = st.session_state.get(
-      "five_year_plan_detail",
+      "fifteen_year_plan_detail",
     )
     if (
-        "five_year_plan_settings" not in st.session_state
-        or "five_year_plan_detail" not in st.session_state
+        "fifteen_year_plan_settings" not in st.session_state
+        or "fifteen_year_plan_detail" not in st.session_state
     ):
       st.warning("Please execute the budget scenarios first.")
       st.stop()
