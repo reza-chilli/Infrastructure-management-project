@@ -1,4 +1,4 @@
-"""Maintenance strategy and five-year investment planning view."""
+"""Maintenance strategy and fifteen-year investment planning view."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from src.five_year_plan import run_budget_scenarios
+from src.fifteen_year_plan import run_budget_scenarios
 from src.treatments import treatment_catalog_as_records
 
 
@@ -25,12 +25,12 @@ def render_maintenance_strategy_page(
     current_year: int,
     workbook_path: str | Path,
 ) -> None:
-    """Render current treatment needs and five-year budget scenarios."""
+    """Render current treatment needs and fifteen-year budget scenarios."""
 
     st.title("Maintenance and Rehabilitation Strategy")
     st.caption(
         "Current recommendations show unconstrained engineering need. "
-        "The five-year plan then determines which actions can actually be "
+        "The fifteen-year plan then determines which actions can actually be "
         "programmed under baseline and constrained annual budgets."
     )
 
@@ -107,13 +107,13 @@ def render_maintenance_strategy_page(
     )
 
     st.caption(
-        "All five action categories are shown. Empty categories have zero "
+        "All fifteen action categories are shown. Empty categories have zero "
         "bridges and zero cost; their average BCI remains blank rather than "
         "being incorrectly reported as zero."
     )
 
     st.divider()
-    _render_five_year_section(
+    _render_fifteen_year_section(
         strategy=strategy,
         current_year=current_year,
         workbook_path=workbook_path,
@@ -121,7 +121,7 @@ def render_maintenance_strategy_page(
 
 
 def _build_current_treatment_summary(strategy: pd.DataFrame) -> pd.DataFrame:
-    """Summarize current recommendations while retaining all five actions."""
+    """Summarize current recommendations while retaining all fifteen actions."""
 
     catalog = pd.DataFrame(treatment_catalog_as_records())[
         ["Treatment_Code", "Treatment_Name"]
@@ -163,12 +163,12 @@ def _build_current_treatment_summary(strategy: pd.DataFrame) -> pd.DataFrame:
     )
 
 
-def _render_five_year_section(
+def _render_fifteen_year_section(
     strategy: pd.DataFrame,
     current_year: int,
     workbook_path: str | Path,
 ) -> None:
-    st.subheader("Five-Year Investment Plan")
+    st.subheader("Fifteen-Year Investment Plan")
     st.caption(
         "Year 1 uses the current calculated condition. Before each later year, "
         "one year of deterioration is applied and traffic grows by 6%. "
@@ -204,7 +204,7 @@ def _render_five_year_section(
         "by the project brief and may be replaced with an approved amount."
     )
 
-    if st.button("Run Five-Year Budget Scenarios", type="primary"):
+    if st.button("Run Fifteen-Year Budget Scenarios", type="primary"):
         bci_weights = st.session_state.get(
             "bci_weights",
             {"deck": 0.30, "super": 0.35, "sub": 0.35},
@@ -214,7 +214,7 @@ def _render_five_year_section(
             {"bci": 0.50, "traffic": 0.30, "replacement_cost": 0.20},
         )
 
-        with st.spinner("Running five-year lifecycle and budget scenarios..."):
+        with st.spinner("Running fifteen-year lifecycle and budget scenarios..."):
             detailed_plan, annual_summary = run_budget_scenarios(
                 df_current=strategy,
                 baseline_annual_budget=float(baseline_budget),
@@ -225,20 +225,20 @@ def _render_five_year_section(
                 constrained_reduction=constrained_reduction_pct / 100.0,
             )
 
-        st.session_state["five_year_plan_detail"] = detailed_plan
-        st.session_state["five_year_plan_summary"] = annual_summary
-        st.session_state["five_year_plan_settings"] = {
+        st.session_state["fifteen_year_plan_detail"] = detailed_plan
+        st.session_state["fifteen_year_plan_summary"] = annual_summary
+        st.session_state["fifteen_year_plan_settings"] = {
             "baseline_budget": float(baseline_budget),
             "constrained_reduction_pct": constrained_reduction_pct,
         }
-        st.success("Five-year scenarios calculated successfully.")
+        st.success("fifteen-year scenarios calculated successfully.")
 
-    detailed_plan = st.session_state.get("five_year_plan_detail")
-    annual_summary = st.session_state.get("five_year_plan_summary")
-    settings = st.session_state.get("five_year_plan_settings")
+    detailed_plan = st.session_state.get("fifteen_year_plan_detail")
+    annual_summary = st.session_state.get("fifteen_year_plan_summary")
+    settings = st.session_state.get("fifteen_year_plan_settings")
 
     if detailed_plan is None or annual_summary is None:
-        st.info("Set the annual budget and run the five-year scenarios.")
+        st.info("Set the annual budget and run the fifteen-year scenarios.")
         return
 
     if settings:
@@ -271,7 +271,7 @@ def _render_five_year_section(
     st.markdown("#### Average End-of-Year BCI")
     st.line_chart(bci_chart)
 
-    st.markdown("#### Programmed Actions Across Five Years")
+    st.markdown("#### Programmed Actions Across Fifteen Years")
     action_summary = _build_programmed_action_summary(detailed_plan)
     st.dataframe(
         action_summary,
@@ -343,9 +343,9 @@ def _render_five_year_section(
     )
 
     st.download_button(
-        "Download Five-Year Detailed Plan CSV",
+        "Download Fifteen-Year Detailed Plan CSV",
         data=detailed_plan.to_csv(index=False).encode("utf-8-sig"),
-        file_name="five_year_bridge_investment_plan.csv",
+        file_name="fifteen_year_bridge_investment_plan.csv",
         mime="text/csv",
     )
 

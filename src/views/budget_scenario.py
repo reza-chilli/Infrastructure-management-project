@@ -3,7 +3,7 @@ import streamlit as st
 
 from pathlib import Path
 
-from src.five_year_plan import DEFAULT_HORIZON_YEARS, DEFAULT_DISCOUNT_RATE
+from src.fifteen_year_plan import DEFAULT_HORIZON_YEARS, DEFAULT_DISCOUNT_RATE
 from src.plots import plot_annual_costs_vs_budget, plot_condition_category_distribution_end_of_program
 from src.calculations import calculate_pv
 
