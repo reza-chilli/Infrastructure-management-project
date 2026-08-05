@@ -8,6 +8,7 @@ def render_communication_results_page() -> None:
     """Render budget scenario analysis based on budget."""
 
     st.title("Communication of results")
+    
     components.html("""""
       <!DOCTYPE html>
       <html lang="fa" dir="rtl">
@@ -619,4 +620,4 @@ def render_communication_results_page() -> None:
       </script>
       </body>
       </html>
-    """, height=3000, scrolling=True)
+    """, height=700, scrolling=True)
