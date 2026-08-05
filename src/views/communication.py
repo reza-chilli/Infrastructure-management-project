@@ -9,18 +9,31 @@ def render_communication_results_page(df_processed: pd.DataFrame,) -> None:
     """Render budget scenario analysis based on budget."""
 
     st.title("Communication of results")
-    annualBudgetSettings = st.session_state.get(
-          "fifteen_year_plan_settings",
-        )
+    planSummary = st.session_state.get(
+      "fifteen_year_plan_summary",
+    )
     detailedPlan = st.session_state.get(
       "fifteen_year_plan_detail",
     )
     if (
-        "fifteen_year_plan_settings" not in st.session_state
+        "fifteen_year_plan_summary" not in st.session_state
         or "fifteen_year_plan_detail" not in st.session_state
     ):
       st.warning("Please execute the budget scenarios first.")
       st.stop()
+    planSummary = pd.DataFrame(planSummary).rename(columns={
+      "Calendar_Year": "year",
+      "Annual_Budget": "budget",
+      "Nominal_Spent": "spent",
+      "Budget_Remaining": "remaining",
+      "Funded_Bridges": "funded",
+      "Deferred_Due_to_Budget": "deferred",
+      "No_Action_Needed": "noaction",
+      "Average_BCI_Start": "avgBciStart",
+      "Average_BCI_End": "avgBciEnd",
+      "Poor_Bridges_Start": "poorStart",
+      "Poor_Bridges_End": "poorEnd"
+    })
     detailedPlan = pd.DataFrame(detailedPlan).rename(columns={
        "Priority Rank": "pr",
        "Priority Score": "ps",
@@ -60,7 +73,12 @@ def render_communication_results_page(df_processed: pd.DataFrame,) -> None:
         for year, year_df in constrainedPlan.groupby("Calendar_Year")
       }
     }
-    print(df_processed.columns.tolist())
+    baseLineSummary = planSummary.query("Scenario == 'Baseline Budget'")
+    constrainedSummary = planSummary.query("Scenario == 'Constrained Budget'")
+    SUMMARY = {
+      "baseline": baseLineSummary.to_dict(orient="records"),
+      "constrained": constrainedSummary.to_dict(orient="records")
+    }
     plan_json = json.dumps(
       PLAN,
       ensure_ascii=False,
@@ -75,40 +93,6 @@ def render_communication_results_page(df_processed: pd.DataFrame,) -> None:
       "east": [[31.8974, 54.3675], [31.55, 54.85], [31.15, 55.1], [30.8722, 55.2847], [30.6, 55.65], [30.407, 55.998], [30.2839, 57.0834]], 
       "ring": [[31.945, 54.37], [31.92, 54.43], [31.87, 54.42], [31.84, 54.37], [31.87, 54.31], [31.92, 54.315], [31.945, 54.37]]
     }
-    summary = {
-      "baseline": [
-        {"year": 2026, "budget": 254200000.0, "spent": 254113150.0, "remaining": 86850.0, "funded": 22, "deferred": 139, "noaction": 0, "avgBciStart": 42.0, "avgBciEnd": 50.3, "poorStart": 135, "poorEnd": 113}, 
-        {"year": 2027, "budget": 254200000.0, "spent": 254179842.0, "remaining": 20158.0, "funded": 24, "deferred": 121, "noaction": 16, "avgBciStart": 48.6, "avgBciEnd": 56.2, "poorStart": 125, "poorEnd": 101}, 
-        {"year": 2028, "budget": 254200000.0, "spent": 254152289.0, "remaining": 47711.0, "funded": 33, "deferred": 99, "noaction": 29, "avgBciStart": 54.3, "avgBciEnd": 65.5, "poorStart": 107, "poorEnd": 75}, 
-        {"year": 2029, "budget": 254200000.0, "spent": 254145084.0, "remaining": 54916.0, "funded": 20, "deferred": 86, "noaction": 55, "avgBciStart": 63.6, "avgBciEnd": 70.7, "poorStart": 77, "poorEnd": 60}, 
-        {"year": 2030, "budget": 254200000.0, "spent": 254138100.0, "remaining": 61900.0, "funded": 29, "deferred": 66, "noaction": 66, "avgBciStart": 68.7, "avgBciEnd": 78.2, "poorStart": 62, "poorEnd": 36}, 
-        {"year": 2031, "budget": 254200000.0, "spent": 254198272.0, "remaining": 1728.0, "funded": 39, "deferred": 42, "noaction": 80, "avgBciStart": 76.1, "avgBciEnd": 87.8, "poorStart": 38, "poorEnd": 7}, 
-        {"year": 2032, "budget": 254200000.0, "spent": 227253479.0, "remaining": 26946521.0, "funded": 70, "deferred": 0, "noaction": 91, "avgBciStart": 85.6, "avgBciEnd": 91.1, "poorStart": 7, "poorEnd": 0}, 
-        {"year": 2033, "budget": 254200000.0, "spent": 92778486.0, "remaining": 161421514.0, "funded": 29, "deferred": 0, "noaction": 132, "avgBciStart": 88.7, "avgBciEnd": 90.0, "poorStart": 0, "poorEnd": 0}, 
-        {"year": 2034, "budget": 254200000.0, "spent": 92361562.0, "remaining": 161838438.0, "funded": 36, "deferred": 0, "noaction": 125, "avgBciStart": 87.6, "avgBciEnd": 89.5, "poorStart": 0, "poorEnd": 0}, 
-        {"year": 2035, "budget": 254200000.0, "spent": 101247820.0, "remaining": 152952180.0, "funded": 38, "deferred": 0, "noaction": 123, "avgBciStart": 87.2, "avgBciEnd": 89.2, "poorStart": 0, "poorEnd": 0}, 
-        {"year": 2036, "budget": 254200000.0, "spent": 116993055.0, "remaining": 137206945.0, "funded": 45, "deferred": 0, "noaction": 116, "avgBciStart": 86.9, "avgBciEnd": 89.4, "poorStart": 0, "poorEnd": 0}, 
-        {"year": 2037, "budget": 254200000.0, "spent": 115788973.0, "remaining": 138411027.0, "funded": 42, "deferred": 0, "noaction": 119, "avgBciStart": 87.0, "avgBciEnd": 89.3, "poorStart": 0, "poorEnd": 0}, 
-        {"year": 2038, "budget": 254200000.0, "spent": 96558842.0, "remaining": 157641158.0, "funded": 38, "deferred": 0, "noaction": 123, "avgBciStart": 87.1, "avgBciEnd": 89.2, "poorStart": 0, "poorEnd": 0}, 
-        {"year": 2039, "budget": 254200000.0, "spent": 118951727.0, "remaining": 135248273.0, "funded": 39, "deferred": 0, "noaction": 122, "avgBciStart": 86.9, "avgBciEnd": 89.0, "poorStart": 0, "poorEnd": 0}, 
-        {"year": 2040, "budget": 254200000.0, "spent": 80896610.0, "remaining": 173303390.0, "funded": 41, "deferred": 0, "noaction": 120, "avgBciStart": 86.8, "avgBciEnd": 89.0, "poorStart": 0, "poorEnd": 0}], 
-      "constrained": [
-        {"year": 2026, "budget": 203360000.0, "spent": 203357098.0, "remaining": 2902.0, "funded": 21, "deferred": 140, "noaction": 0, "avgBciStart": 42.0, "avgBciEnd": 49.8, "poorStart": 135, "poorEnd": 114}, 
-        {"year": 2027, "budget": 203360000.0, "spent": 203231864.0, "remaining": 128136.0, "funded": 18, "deferred": 128, "noaction": 15, "avgBciStart": 48.1, "avgBciEnd": 53.9, "poorStart": 126, "poorEnd": 108}, 
-        {"year": 2028, "budget": 203360000.0, "spent": 203312651.0, "remaining": 47349.0, "funded": 22, "deferred": 112, "noaction": 27, "avgBciStart": 52.1, "avgBciEnd": 59.7, "poorStart": 114, "poorEnd": 92}, 
-        {"year": 2029, "budget": 203360000.0, "spent": 203352232.0, "remaining": 7768.0, "funded": 23, "deferred": 98, "noaction": 40, "avgBciStart": 57.8, "avgBciEnd": 65.9, "poorStart": 94, "poorEnd": 72}, 
-        {"year": 2030, "budget": 203360000.0, "spent": 203322576.0, "remaining": 37424.0, "funded": 14, "deferred": 94, "noaction": 53, "avgBciStart": 63.9, "avgBciEnd": 68.4, "poorStart": 74, "poorEnd": 64}, 
-        {"year": 2031, "budget": 203360000.0, "spent": 203327361.0, "remaining": 32639.0, "funded": 24, "deferred": 79, "noaction": 58, "avgBciStart": 66.4, "avgBciEnd": 75.2, "poorStart": 67, "poorEnd": 43}, 
-        {"year": 2032, "budget": 203360000.0, "spent": 203350833.0, "remaining": 9167.0, "funded": 23, "deferred": 72, "noaction": 66, "avgBciStart": 73.2, "avgBciEnd": 81.0, "poorStart": 43, "poorEnd": 23}, 
-        {"year": 2033, "budget": 203360000.0, "spent": 203295625.0, "remaining": 64375.0, "funded": 29, "deferred": 61, "noaction": 71, "avgBciStart": 78.9, "avgBciEnd": 86.7, "poorStart": 23, "poorEnd": 4}, 
-        {"year": 2034, "budget": 203360000.0, "spent": 203283511.0, "remaining": 76489.0, "funded": 62, "deferred": 19, "noaction": 80, "avgBciStart": 84.5, "avgBciEnd": 89.1, "poorStart": 4, "poorEnd": 0}, 
-        {"year": 2035, "budget": 203360000.0, "spent": 154416392.0, "remaining": 48943608.0, "funded": 61, "deferred": 0, "noaction": 100, "avgBciStart": 86.8, "avgBciEnd": 90.0, "poorStart": 0, "poorEnd": 0}, 
-        {"year": 2036, "budget": 203360000.0, "spent": 88376009.0, "remaining": 114983991.0, "funded": 28, "deferred": 0, "noaction": 133, "avgBciStart": 87.7, "avgBciEnd": 89.1, "poorStart": 0, "poorEnd": 0}, 
-        {"year": 2037, "budget": 203360000.0, "spent": 153709224.0, "remaining": 49650776.0, "funded": 57, "deferred": 0, "noaction": 104, "avgBciStart": 86.8, "avgBciEnd": 89.8, "poorStart": 0, "poorEnd": 0}, 
-        {"year": 2038, "budget": 203360000.0, "spent": 80379857.0, "remaining": 122980143.0, "funded": 35, "deferred": 0, "noaction": 126, "avgBciStart": 87.4, "avgBciEnd": 89.3, "poorStart": 0, "poorEnd": 0}, 
-        {"year": 2039, "budget": 203360000.0, "spent": 113158726.0, "remaining": 90201274.0, "funded": 42, "deferred": 0, "noaction": 119, "avgBciStart": 87.0, "avgBciEnd": 89.3, "poorStart": 0, "poorEnd": 0}, 
-        {"year": 2040, "budget": 203360000.0, "spent": 92831348.0, "remaining": 110528652.0, "funded": 35, "deferred": 0, "noaction": 126, "avgBciStart": 87.0, "avgBciEnd": 88.9, "poorStart": 0, "poorEnd": 0}]
-      }
     locations = {
       "B1": { "lat": 31.86821, "lon": 54.41702, "corridor": "ring" },
       "B2": { "lat": 31.92972, "lon": 54.33637, "corridor": "ring" },
@@ -309,7 +293,7 @@ def render_communication_results_page(df_processed: pd.DataFrame,) -> None:
         "corridor": locations.get(bridge_id, {}).get("corridor")
     }
     summary_json = json.dumps(
-      summary,
+      SUMMARY,
       ensure_ascii=False,
       default=str
     )
