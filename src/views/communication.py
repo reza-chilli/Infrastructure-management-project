@@ -291,7 +291,6 @@ def render_communication_results_page(df_processed: pd.DataFrame,) -> None:
 
     for _, row in bridges_df.iterrows():
       bridge_id = row["id"]
-      print('this is lats', locations.get(bridge_id, {}).get("lat"))
       bridges[bridge_id] = {
         "id": bridge_id,
         "hwy_id": row["hwy_id"],
