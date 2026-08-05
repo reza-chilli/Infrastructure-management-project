@@ -204,4 +204,6 @@ elif page == "Budget Scenario Analysis":
     )
 
 elif page == "Communication of Results":
-    render_communication_results_page()
+    render_communication_results_page(
+       df_processed=df_processed,
+    )
