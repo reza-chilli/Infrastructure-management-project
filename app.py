@@ -11,6 +11,9 @@ from src.views.maintenance_strategy import (
 from src.views.budget_scenario import (
    render_budget_scenario_page
 )
+from src.views.communication import (
+   render_communication_results_page
+)
 
 st.set_page_config(page_title="Bridge Analysis", layout="wide")
 
@@ -201,5 +204,4 @@ elif page == "Budget Scenario Analysis":
     )
 
 elif page == "Communication of Results":
-    st.title("Communication of Results")
-    st.write("This is the Communication of Results page.")
+    render_communication_results_page()
