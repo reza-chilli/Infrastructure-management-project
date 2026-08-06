@@ -138,8 +138,6 @@ pyasn1_modules==0.4.2
 pycparser==2.22
 pydeck==0.9.2
 Pygments==2.20.0
-pyinstaller==6.14.2
-pyinstaller-hooks-contrib==2025.6
 pyparsing==3.2.3
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
