@@ -5,8 +5,6 @@ anyio==4.13.0
 argon2-cffi==25.1.0
 argon2-cffi-bindings==25.1.0
 arrow==1.4.0
-# Editable install with no version control (aruco-perspective==0.1.0)
--e e:\test\aruco-perspective
 asgiref==3.11.1
 asttokens==3.0.1
 async-lru==2.3.0
